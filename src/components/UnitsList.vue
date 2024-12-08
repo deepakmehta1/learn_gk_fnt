@@ -17,25 +17,15 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import type { PropType } from 'vue'
+import type { PropType } from 'vue' // Correct import for PropType
 import { useLanguageStore } from '@/stores/languageStore' // Import the language store
+import type { Unit } from '@/types/unitTypes' // Import the Unit type
 
 export default defineComponent({
   name: 'UnitsList',
   props: {
     units: {
-      type: Array as PropType<
-        {
-          id: number
-          title_en: string
-          title_hi: string
-          subunits: Array<{
-            id: number
-            title_en: string
-            title_hi: string
-          }>
-        }[]
-      >,
+      type: Array as PropType<Unit[]>, // Use the centralized Unit type here
       required: true,
     },
   },

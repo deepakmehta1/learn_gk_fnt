@@ -1,7 +1,11 @@
 <template>
   <div class="card shadow-sm">
     <div class="card-body">
+      <!-- Dynamically access title_en or title_hi based on the current language -->
       <h5 class="card-title">{{ book[`title_${languageStore.language}` as keyof typeof book] }}</h5>
+      <h6 class="card-subtitle mb-2 text-muted">
+        {{ book[`title_${languageStore.language}` as keyof typeof book] }}
+      </h6>
       <button class="btn btn-primary mt-3" @click="viewMore(book.id)">Practice Questions</button>
 
       <!-- Pass units data to UnitsList component -->
@@ -12,11 +16,11 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue'
+import type { PropType } from 'vue' // Correct import for PropType
 import { useLanguageStore } from '@/stores/languageStore' // Import the language store
 import { getBookDetails } from '@/api' // Import the API function
 import UnitsList from './UnitsList.vue' // Import the UnitsList component
-
-import type { PropType } from 'vue'
+import type { Unit } from '@/types/unitTypes' // Import the Unit type
 
 export default defineComponent({
   name: 'BookCard',
@@ -31,7 +35,7 @@ export default defineComponent({
   },
   setup() {
     const languageStore = useLanguageStore() // Access the language store
-    const units = ref<any[]>([]) // Reactive variable to hold units data
+    const units = ref<Unit[]>([]) // Use Unit[] type for the units array
 
     // Use computed to access the language reactively
     const currentLanguage = computed(() => languageStore.language)
@@ -47,7 +51,7 @@ export default defineComponent({
       }
     }
 
-    return { units, viewMore, languageStore }
+    return { units, viewMore, languageStore, currentLanguage }
   },
 })
 </script>

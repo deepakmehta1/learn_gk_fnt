@@ -1,71 +1,58 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-</script>
-
 <template>
-  <RouterView />
+  <div id="app">
+    <!-- Language Toggle Button at the top right -->
+    <div class="language-toggle">
+      <button @click="toggleLanguage">
+        Switch to {{ currentLanguage === 'en' ? 'Hindi' : 'English' }}
+      </button>
+    </div>
+
+    <!-- Main content -->
+    <HomeView />
+  </div>
 </template>
 
+<script lang="ts">
+import { defineComponent, computed } from 'vue'
+import { useLanguageStore } from '@/stores/languageStore' // Import the language store
+import HomeView from './views/HomeView.vue' // Import HomeView component
+
+export default defineComponent({
+  name: 'App',
+  components: {
+    HomeView,
+  },
+  setup() {
+    const languageStore = useLanguageStore() // Access the language store
+
+    // Use computed to reactively access the current language
+    const currentLanguage = computed(() => languageStore.language)
+
+    // Toggle language between 'en' and 'hi'
+    const toggleLanguage = () => {
+      languageStore.toggleLanguage()
+    }
+
+    return {
+      toggleLanguage,
+      currentLanguage,
+    }
+  },
+})
+</script>
+
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+.language-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: #fff;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.language-toggle button {
+  font-size: 16px;
 }
 </style>

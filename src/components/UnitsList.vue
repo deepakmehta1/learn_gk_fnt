@@ -1,23 +1,25 @@
-<!-- src/components/UnitsList.vue -->
 <template>
   <div v-if="units.length" class="mt-4">
     <h6>Units:</h6>
-    <ul>
+    <ol>
       <li v-for="unit in units" :key="unit.id">
-        <strong>{{ unit.title_en }}</strong> ({{ unit.title_hi }})
-        <ul>
+        <!-- Dynamically access title_en or title_hi based on the current language -->
+        <strong>{{ unit[`title_${languageStore.language}` as keyof typeof unit] }}</strong>
+        <ol>
           <li v-for="subunit in unit.subunits" :key="subunit.id">
-            {{ subunit.title_en }} ({{ subunit.title_hi }})
+            {{ subunit[`title_${languageStore.language}` as keyof typeof subunit] }}
           </li>
-        </ul>
+        </ol>
       </li>
-    </ul>
+    </ol>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import type { PropType } from 'vue'
+import { useLanguageStore } from '@/stores/languageStore' // Import the language store
+
 export default defineComponent({
   name: 'UnitsList',
   props: {
@@ -27,19 +29,27 @@ export default defineComponent({
           id: number
           title_en: string
           title_hi: string
-          subunits: Array<{ id: number; title_en: string; title_hi: string }>
+          subunits: Array<{
+            id: number
+            title_en: string
+            title_hi: string
+          }>
         }[]
       >,
       required: true,
     },
   },
+  setup() {
+    const languageStore = useLanguageStore() // Access the language store
+    return { languageStore }
+  },
 })
 </script>
 
 <style scoped>
-ul {
-  list-style-type: none;
-  padding-left: 0;
+ol {
+  list-style-type: decimal; /* Makes the list numbered */
+  padding-left: 20px;
 }
 
 li {

@@ -1,26 +1,29 @@
 <template>
   <div class="card shadow-sm">
     <div class="card-body">
-      <!-- Dynamically access title_en or title_hi based on the current language -->
+      <!-- Display title based on current language (en/hi) -->
       <h5 class="card-title">{{ book[`title_${languageStore.language}` as keyof typeof book] }}</h5>
+
+      <!-- Display subtitle in the selected language -->
       <h6 class="card-subtitle mb-2 text-muted">
         {{ book[`title_${languageStore.language}` as keyof typeof book] }}
       </h6>
+
+      <!-- Button to load more book details -->
       <button class="btn btn-primary mt-3" @click="viewMore(book.id)">Practice Questions</button>
 
-      <!-- Pass units data to UnitsList component -->
+      <!-- Conditionally render UnitsList if units data exists -->
       <UnitsList v-if="units.length" :units="units" />
     </div>
   </div>
 </template>
-
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue'
-import type { PropType } from 'vue' // Correct import for PropType
-import { useLanguageStore } from '@/stores/languageStore' // Import the language store
-import { getBookDetails } from '@/api' // Import the API function
-import UnitsList from './UnitsList.vue' // Import the UnitsList component
-import type { Unit } from '@/types/unitTypes' // Import the Unit type
+import type { PropType } from 'vue' // Import PropType for prop validation
+import { useLanguageStore } from '@/stores/languageStore' // Access language store
+import { getBookDetails } from '@/api' // Fetch book details
+import UnitsList from './UnitsList.vue' // UnitsList component
+import type { Unit } from '@/types/unitTypes' // Import Unit type
 
 export default defineComponent({
   name: 'BookCard',
@@ -31,21 +34,20 @@ export default defineComponent({
     },
   },
   components: {
-    UnitsList, // Register the UnitsList component
+    UnitsList, // Register UnitsList component
   },
   setup() {
-    const languageStore = useLanguageStore() // Access the language store
-    const units = ref<Unit[]>([]) // Use Unit[] type for the units array
+    const languageStore = useLanguageStore() // Access language store
+    const units = ref<Unit[]>([]) // Units data
 
-    // Use computed to access the language reactively
+    // Reactive computed property for current language
     const currentLanguage = computed(() => languageStore.language)
 
-    // Method to handle the "Practice Questions" button click
+    // Fetch book details when the "Practice Questions" button is clicked
     const viewMore = async (bookId: number) => {
       try {
         const bookDetails = await getBookDetails(bookId)
-        units.value = bookDetails.units // Set the units data
-        console.log(`Units for book ID: ${bookId}`, units.value)
+        units.value = bookDetails.units // Set units data
       } catch (error) {
         console.error('Error fetching book details:', error)
       }
@@ -76,6 +78,6 @@ h6 {
 }
 
 .btn {
-  width: 100%; /* Optional: To make the button stretch across the card */
+  width: 100%; /* Make button full width */
 }
 </style>

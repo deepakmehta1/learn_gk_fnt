@@ -1,32 +1,33 @@
-<!-- src/components/BookList.vue -->
 <template>
   <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <!-- Render BookCard for each book in the list -->
     <BookCard v-for="book in books" :key="book.id" :book="book" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue'
-import { getBooks } from '@/api'
-import BookCard from './BookCard.vue'
+import { getBooks } from '@/api' // Fetch books from the API
+import BookCard from './BookCard.vue' // Import BookCard component
 
 export default defineComponent({
   name: 'BookList',
   components: {
-    BookCard,
+    BookCard, // Register BookCard component
   },
   setup() {
-    const books = ref<any[]>([])
+    const books = ref<any[]>([]) // Reactive list of books
 
+    // Fetch books when the component is mounted
     onMounted(async () => {
-      books.value = await getBooks()
+      books.value = await getBooks() // Set books data
     })
 
-    return { books }
+    return { books } // Return books for use in the template
   },
 })
 </script>
 
 <style scoped>
-/* You can add custom styles here for the BookList component */
+/* Custom styles for the BookList component can go here */
 </style>

@@ -6,10 +6,15 @@
       <li v-for="unit in units" :key="unit.id">
         <!-- Dynamically access title_en or title_hi based on current language -->
         <strong>{{ unit[`title_${languageStore.language}` as keyof typeof unit] }}</strong>
+        <!-- Display question count for each unit -->
+        <span>({{ unit.question_count }} questions)</span>
+
         <ol>
           <!-- Loop through subunits and display them -->
           <li v-for="subunit in unit.subunits" :key="subunit.id">
             {{ subunit[`title_${languageStore.language}` as keyof typeof subunit] }}
+            <!-- Display question count for each subunit -->
+            <span>({{ subunit.question_count }} questions)</span>
           </li>
         </ol>
       </li>
@@ -50,5 +55,10 @@ li {
 
 li strong {
   font-weight: bold; /* Make unit titles bold */
+}
+
+span {
+  font-size: 0.9rem; /* Make question count text slightly smaller */
+  color: #6c757d; /* Add a muted color for question count */
 }
 </style>

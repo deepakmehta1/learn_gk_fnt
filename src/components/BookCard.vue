@@ -10,16 +10,17 @@
       </h6>
 
       <!-- Button to load more book details -->
-      <button class="btn btn-primary mt-3" @click="viewMore(book.id)">Practice Questions</button>
+      <button class="btn btn-primary mt-3" @click="viewMore(book.id)">View Topics</button>
 
       <!-- Conditionally render UnitsList if units data exists -->
       <UnitsList v-if="units.length" :units="units" />
     </div>
   </div>
 </template>
+
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue'
-import type { PropType } from 'vue' // Import PropType for prop validation
+import type { PropType } from 'vue' // Correct import for PropType
 import { useLanguageStore } from '@/stores/languageStore' // Access language store
 import { getBookDetails } from '@/api' // Fetch book details
 import UnitsList from './UnitsList.vue' // UnitsList component
@@ -43,7 +44,7 @@ export default defineComponent({
     // Reactive computed property for current language
     const currentLanguage = computed(() => languageStore.language)
 
-    // Fetch book details when the "Practice Questions" button is clicked
+    // Fetch book details when the "View Topics" button is clicked
     const viewMore = async (bookId: number) => {
       try {
         const bookDetails = await getBookDetails(bookId)

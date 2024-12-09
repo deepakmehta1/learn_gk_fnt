@@ -1,5 +1,13 @@
 <template>
-  <div class="card shadow-sm">
+  <div class="card shadow-sm position-relative">
+    <!-- "Start Practicing" button at the top right with glowing effect -->
+    <button
+      class="btn btn-success position-absolute top-0 end-0 m-1 start-practicing-btn"
+      style="width: 30%"
+    >
+      <i class="fas fa-play-circle"></i> Start Practicing
+    </button>
+
     <div class="card-body">
       <!-- Display title based on current language (en/hi) -->
       <h5 class="card-title">{{ book[`title_${languageStore.language}` as keyof typeof book] }}</h5>
@@ -94,5 +102,83 @@ h6 {
 
 .btn {
   width: 100%; /* Make button full width */
+}
+
+/* Position "Start Practicing" button at the top-right corner */
+.position-relative {
+  position: relative;
+}
+
+.position-absolute {
+  position: absolute;
+}
+
+.top-0 {
+  top: 0;
+}
+
+.end-0 {
+  right: 0;
+}
+
+.m-3 {
+  margin: 1rem;
+}
+
+/* Styling for "Start Practicing" button */
+.start-practicing-btn {
+  background-color: #9dc7a7; /* Green background */
+  border-color: #2f4b35; /* Green border */
+  color: rgb(9, 9, 9);
+  font-size: 1.1rem;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: glowing 1.5s infinite ease-in-out; /* Add glowing effect animation */
+}
+
+/* Add a glowing animation */
+@keyframes glowing {
+  0% {
+    box-shadow:
+      0 0 5px #28a745,
+      0 0 10px #28a745,
+      0 0 15px #28a745,
+      0 0 20px #28a745;
+    background-color: #34d058; /* Slightly lighter green */
+  }
+  50% {
+    box-shadow:
+      0 0 10px #34d058,
+      0 0 20px #34d058,
+      0 0 30px #34d058,
+      0 0 40px #34d058;
+    background-color: #28a745;
+  }
+  100% {
+    box-shadow:
+      0 0 5px #28a745,
+      0 0 10px #28a745,
+      0 0 15px #28a745,
+      0 0 20px #28a745;
+    background-color: #34d058;
+  }
+}
+
+.start-practicing-btn i {
+  margin-right: 10px; /* Space between the icon and the text */
+}
+
+.start-practicing-btn:hover {
+  transform: scale(1.05); /* Slight scale effect to draw attention */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Add a shadow for a raised effect */
+}
+
+.start-practicing-btn:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* Highlight the button when focused */
 }
 </style>

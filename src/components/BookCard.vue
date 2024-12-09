@@ -9,11 +9,13 @@
         {{ book[`title_${languageStore.language}` as keyof typeof book] }}
       </h6>
 
-      <!-- Button to load more book details -->
-      <button class="btn btn-primary mt-3" @click="viewMore(book.id)">View Topics</button>
+      <!-- Button to toggle the visibility of topics -->
+      <button class="btn btn-primary mt-3" @click="toggleUnitsVisibility">
+        {{ isExpanded ? 'Collapse Topics' : 'Expand Topics' }}
+      </button>
 
-      <!-- Conditionally render UnitsList if units data exists -->
-      <UnitsList v-if="units.length" :units="units" />
+      <!-- Conditionally render UnitsList if units data exists and topics are expanded -->
+      <UnitsList v-if="isExpanded && units.length" :units="units" />
     </div>
   </div>
 </template>
@@ -37,24 +39,36 @@ export default defineComponent({
   components: {
     UnitsList, // Register UnitsList component
   },
-  setup() {
+  setup(props) {
     const languageStore = useLanguageStore() // Access language store
     const units = ref<Unit[]>([]) // Units data
+    const isExpanded = ref(false) // Track the visibility of units
 
     // Reactive computed property for current language
     const currentLanguage = computed(() => languageStore.language)
 
-    // Fetch book details when the "View Topics" button is clicked
-    const viewMore = async (bookId: number) => {
-      try {
-        const bookDetails = await getBookDetails(bookId)
-        units.value = bookDetails.units // Set units data
-      } catch (error) {
-        console.error('Error fetching book details:', error)
+    // Fetch book details when expanding the topics
+    const toggleUnitsVisibility = async () => {
+      if (!isExpanded.value) {
+        // Fetch book details when expanding
+        try {
+          const bookDetails = await getBookDetails(props.book.id)
+          units.value = bookDetails.units // Set units data
+        } catch (error) {
+          console.error('Error fetching book details:', error)
+        }
       }
+      isExpanded.value = !isExpanded.value // Toggle the expanded state
     }
 
-    return { units, viewMore, languageStore, currentLanguage }
+    return {
+      units,
+      toggleUnitsVisibility,
+      isExpanded,
+      languageStore,
+      currentLanguage,
+      book: props.book,
+    } // Pass `book` from props
   },
 })
 </script>

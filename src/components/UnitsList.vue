@@ -6,9 +6,6 @@
       <li v-for="unit in units" :key="unit.id">
         <!-- Dynamically access title_en or title_hi based on current language -->
         <strong>{{ unit[`title_${languageStore.language}` as keyof typeof unit] }}</strong>
-        <!-- Display question count for each unit -->
-        <span>({{ unit.question_count }} questions)</span>
-
         <ol>
           <!-- Loop through subunits and display them -->
           <li v-for="subunit in unit.subunits" :key="subunit.id">

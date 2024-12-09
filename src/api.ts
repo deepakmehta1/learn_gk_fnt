@@ -23,10 +23,16 @@ export const getBookDetails = async (bookId: number) => {
   }
 }
 
+const BEARER_TOKEN = 'your-hardcoded-bearer-token-here'
+
 // Fetch questions for a specific subunit
 export const getSubunitQuestions = async (subunitId: number) => {
   try {
-    const response = await axios.get(`${BASE_URL}/quiz/subunit/${subunitId}/questions`)
+    const response = await axios.get(`${BASE_URL}/quiz/subunit/${subunitId}/questions`, {
+      headers: {
+        Authorization: `Bearer ${BEARER_TOKEN}`,
+      },
+    })
     return response.data
   } catch (error) {
     console.error('Error fetching subunit questions:', error)
@@ -37,7 +43,11 @@ export const getSubunitQuestions = async (subunitId: number) => {
 // Fetch a specific question by its ID
 export const getQuestionById = async (questionId: number) => {
   try {
-    const response = await axios.get(`${BASE_URL}/quiz/question/${questionId}`)
+    const response = await axios.get(`${BASE_URL}/quiz/question/${questionId}`, {
+      headers: {
+        Authorization: `Bearer ${BEARER_TOKEN}`,
+      },
+    })
     return response.data
   } catch (error) {
     console.error('Error fetching question:', error)

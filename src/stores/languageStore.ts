@@ -14,4 +14,14 @@ export const useLanguageStore = defineStore('language', {
     isEnglish: (state) => state.language === 'en',
     isHindi: (state) => state.language === 'hi',
   },
+  persist: {
+    enabled: true,
+    strategies: [
+      {
+        key: 'language', // The key used in localStorage to store the state
+        storage: localStorage, // Use localStorage for persistence
+        paths: ['language'], // Persist only the 'language' state
+      },
+    ],
+  },
 })

@@ -35,7 +35,7 @@ import type { PropType } from 'vue' // Correct import for PropType
 import { useLanguageStore } from '@/stores/languageStore' // Access language store
 import { getBookDetails } from '@/api' // Fetch book details
 import UnitsList from './UnitsList.vue' // UnitsList component
-import type { Unit } from '@/types/unitTypes' // Import Unit type
+import type { Unit, Book } from '@/types/unitTypes' // Import Unit and Book types
 import { useQuizStore } from '@/stores/quizStore' // Import the quiz store
 import { useRouter } from 'vue-router' // To navigate to a new route
 
@@ -43,7 +43,7 @@ export default defineComponent({
   name: 'BookCard',
   props: {
     book: {
-      type: Object as PropType<{ id: number; title_en: string; title_hi: string }>,
+      type: Object as PropType<Book>, // Updated prop type to use the full Book type
       required: true,
     },
   },
@@ -76,7 +76,7 @@ export default defineComponent({
 
     // Start practicing: save book in store and navigate to quiz playground
     const startPracticing = () => {
-      // Save current book in the store
+      // Save current book in the store using the store instance
       quizStore.setCurrentBook(props.book)
       // Navigate to quiz playground
       router.push('/quiz-playground')
@@ -88,9 +88,9 @@ export default defineComponent({
       isExpanded,
       languageStore,
       currentLanguage,
-      book: props.book,
+      book_obj: props.book,
       startPracticing, // Expose the startPracticing method
-    } // Pass `book` from props
+    }
   },
 })
 </script>

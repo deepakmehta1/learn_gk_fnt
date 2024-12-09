@@ -4,6 +4,7 @@
     <button
       class="btn btn-success position-absolute top-0 end-0 m-1 start-practicing-btn"
       style="width: 30%"
+      @click="startPracticing"
     >
       <i class="fas fa-play-circle"></i> Start Practicing
     </button>
@@ -35,6 +36,8 @@ import { useLanguageStore } from '@/stores/languageStore' // Access language sto
 import { getBookDetails } from '@/api' // Fetch book details
 import UnitsList from './UnitsList.vue' // UnitsList component
 import type { Unit } from '@/types/unitTypes' // Import Unit type
+import { useQuizStore } from '@/stores/quizStore' // Import the quiz store
+import { useRouter } from 'vue-router' // To navigate to a new route
 
 export default defineComponent({
   name: 'BookCard',
@@ -51,6 +54,8 @@ export default defineComponent({
     const languageStore = useLanguageStore() // Access language store
     const units = ref<Unit[]>([]) // Units data
     const isExpanded = ref(false) // Track the visibility of units
+    const quizStore = useQuizStore() // Access quiz store
+    const router = useRouter() // To navigate to new route
 
     // Reactive computed property for current language
     const currentLanguage = computed(() => languageStore.language)
@@ -69,6 +74,14 @@ export default defineComponent({
       isExpanded.value = !isExpanded.value // Toggle the expanded state
     }
 
+    // Start practicing: save book in store and navigate to quiz playground
+    const startPracticing = () => {
+      // Save current book in the store
+      quizStore.setCurrentBook(props.book)
+      // Navigate to quiz playground
+      router.push('/quiz-playground')
+    }
+
     return {
       units,
       toggleUnitsVisibility,
@@ -76,6 +89,7 @@ export default defineComponent({
       languageStore,
       currentLanguage,
       book: props.book,
+      startPracticing, // Expose the startPracticing method
     } // Pass `book` from props
   },
 })
@@ -130,8 +144,7 @@ h6 {
   background-color: #9dc7a7; /* Green background */
   border-color: #2f4b35; /* Green border */
   color: rgb(9, 9, 9);
-  font-size: 1.1rem;
-  font-weight: bold;
+  font-size: 0.8 rem;
   padding: 0.5rem 1rem;
   border-radius: 10px;
   display: flex;

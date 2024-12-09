@@ -8,20 +8,17 @@
     </div>
 
     <!-- Main content -->
-    <HomeView />
+    <router-view />
+    <!-- This is where the routed views (like HomeView) will be rendered -->
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, computed } from 'vue'
 import { useLanguageStore } from '@/stores/languageStore' // Import the language store
-import HomeView from './views/HomeView.vue' // Import HomeView component
 
 export default defineComponent({
   name: 'App',
-  components: {
-    HomeView,
-  },
   setup() {
     const languageStore = useLanguageStore() // Access the language store
 

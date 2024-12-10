@@ -5,7 +5,7 @@
 
     <!-- Ordered list for the options -->
     <ol class="options-list">
-      <li v-for="(option, index) in currentQuestion?.choices" :key="option.id">
+      <ol v-for="(option, index) in currentQuestion?.choices" :key="option.id">
         <button
           class="btn btn-option"
           :class="{ selected: selectedOption === option.id }"
@@ -14,7 +14,7 @@
         >
           {{ String.fromCharCode(65 + index) }}. {{ option[`text_${language}`] }}
         </button>
-      </li>
+      </ol>
     </ol>
 
     <!-- Submit Answer Button -->

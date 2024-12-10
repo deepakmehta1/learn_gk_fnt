@@ -54,3 +54,22 @@ export const getQuestionById = async (questionId: number) => {
     throw error
   }
 }
+
+// Submit the answer for the given question
+export const submitQuestionAnswer = async (questionId: number, choiceId: number) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/quiz/question/${questionId}/submit`,
+      { choice_id: choiceId },
+      {
+        headers: {
+          Authorization: `Bearer ${BEARER_TOKEN}`,
+        },
+      },
+    )
+    return response.data
+  } catch (error) {
+    console.error('Error submitting answer:', error)
+    throw error
+  }
+}

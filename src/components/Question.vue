@@ -5,7 +5,7 @@
 
     <!-- Ordered list for the options -->
     <ol class="options-list">
-      <ol v-for="(option, index) in currentQuestion?.choices" :key="option.id">
+      <li v-for="(option, index) in currentQuestion?.choices" :key="option.id">
         <button
           class="btn btn-option"
           :class="{ selected: selectedOption === option.id }"
@@ -13,7 +13,7 @@
         >
           {{ String.fromCharCode(65 + index) }}. {{ option[`text_${language}`] }}
         </button>
-      </ol>
+      </li>
     </ol>
 
     <!-- Submit Answer Button -->
@@ -28,7 +28,7 @@
 <script lang="ts">
 import { defineComponent, computed, onMounted, ref } from 'vue'
 import { useQuizStore } from '@/stores/quizStore' // Access quiz store
-import { getSubunitQuestions, getQuestionById } from '@/api' // Import API methods
+import { getSubunitQuestions, getQuestionById, submitQuestionAnswer } from '@/api' // Import API methods
 import type { Question } from '@/types/quizTypes' // Import the Question type
 
 export default defineComponent({
@@ -73,16 +73,27 @@ export default defineComponent({
     }
 
     // Handle submitting the answer
-    const submitAnswer = () => {
-      console.log('Answer submitted')
-      // Logic to check the answer and update the state
+    const submitAnswer = async () => {
+      if (selectedOption.value !== null && currentQuestion.value) {
+        try {
+          const response = await submitQuestionAnswer(
+            currentQuestion.value.id,
+            selectedOption.value,
+          )
+          console.log('Answer submitted successfully:', response)
+        } catch (error) {
+          console.error('Error submitting answer:', error)
+        }
+      } else {
+        console.log('No option selected')
+      }
     }
 
     return {
       currentQuestion,
       selectedOption,
       selectAnswer,
-      submitAnswer,
+      submitAnswer, // Make sure to return submitAnswer so it can be used in the template
     }
   },
 })

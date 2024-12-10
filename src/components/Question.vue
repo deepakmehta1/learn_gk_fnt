@@ -28,6 +28,18 @@
       </button>
     </div>
 
+    <!-- Next Question Button -->
+    <div class="d-flex justify-content-center">
+      <button
+        class="btn btn-secondary mt-3 next-question-button"
+        @click="nextQuestion"
+        :disabled="!isAnswered"
+        :class="{ 'highlight-button': isAnswered }"
+      >
+        Next Question
+      </button>
+    </div>
+
     <!-- Modal for showing correct/incorrect answer -->
     <div v-if="showResultModal" class="modal">
       <div class="modal-content">
@@ -59,7 +71,7 @@ export default defineComponent({
       required: true,
     },
   },
-  setup() {
+  setup(props) {
     const quizStore = useQuizStore() // Access quiz store
     const selectedOption = ref<number | null>(null) // Track selected option
     const showResultModal = ref(false) // Control visibility of result modal
@@ -123,6 +135,22 @@ export default defineComponent({
       }
     }
 
+    // Handle next question
+    const nextQuestion = () => {
+      if (quizStore.currentQuestions.length > 0) {
+        // Move to the next question
+        const currentIndex = quizStore.currentQuestionIndex
+        if (currentIndex + 1 < quizStore.currentQuestions.length) {
+          quizStore.setCurrentQuestion(quizStore.currentQuestions[currentIndex + 1]) // Set the next question
+          quizStore.setCurrentQuestionIndex(currentIndex + 1) // Increment the index
+          selectedOption.value = null // Reset selected option
+          isAnswered.value = false // Allow answer selection again
+          showResultModal.value = false // Close the result modal
+          isSubmitting.value = false
+        }
+      }
+    }
+
     return {
       currentQuestion,
       selectedOption,
@@ -131,7 +159,8 @@ export default defineComponent({
       showResultModal,
       isCorrect,
       isSubmitting,
-      isAnswered, // Pass isAnswered to control the submission and selection logic
+      isAnswered,
+      nextQuestion, // Return nextQuestion to bind to the "Next Question" button
     }
   },
 })
@@ -190,6 +219,40 @@ button:focus {
   background-color: #218838 !important; /* Highlight the selected option */
 }
 
+.next-question-button {
+  width: 30%;
+  background-color: #215fa0;
+  margin-top: 10px;
+  color: white;
+  border-radius: 5px;
+  border: none;
+}
+
+.next-question-button:disabled {
+  background-color: #a5a5a5;
+  cursor: not-allowed;
+}
+
+.highlight-button {
+  animation: highlight 1s infinite alternate; /* Apply animation when the button is enabled */
+}
+
+/* Highlight animation */
+@keyframes highlight {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.7);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+  }
+}
+
 /* Modal for showing result */
 .modal {
   position: fixed;
@@ -219,19 +282,6 @@ button:focus {
   cursor: pointer;
 }
 
-.progress-bar-container {
-  width: 100%;
-  background-color: #f1f1f1;
-  border-radius: 5px;
-  margin: 10px 0;
-}
-
-.progress-bar {
-  height: 20px;
-  background-color: #28a745;
-  border-radius: 5px;
-}
-
 h3 {
   margin-bottom: 20px;
 }
@@ -252,6 +302,13 @@ h3 {
   .question-container {
     width: 100%;
   }
+
+  h2 {
+    font-size: 16px;
+    margin-bottom: 20px;
+    margin-top: 30px;
+  }
+
   .submit-button {
     width: 50%; /* Button width is 50% for small screens */
   }

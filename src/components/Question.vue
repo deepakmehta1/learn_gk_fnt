@@ -6,14 +6,18 @@
     <!-- Ordered list for the options -->
     <ol class="options-list">
       <ol v-for="(option, index) in currentQuestion?.choices" :key="option.id">
-        <button @click="selectAnswer(option.id)">
+        <button class="btn btn-option" @click="selectAnswer(option.id)">
           {{ String.fromCharCode(65 + index) }}. {{ option.text_en }}
         </button>
       </ol>
     </ol>
 
     <!-- Submit Answer Button -->
-    <button class="btn btn-primary mt-3 submit-button" @click="submitAnswer">Submit Answer</button>
+    <div class="d-flex justify-content-center">
+      <button class="btn btn-primary mt-3 submit-button" @click="submitAnswer">
+        Submit Answer
+      </button>
+    </div>
   </div>
 </template>
 
@@ -75,7 +79,7 @@ export default defineComponent({
 
 <style scoped>
 .question-container {
-  width: 70%; /* Adjust width of the question container */
+  width: 100%; /* By default, take full width */
   padding: 20px;
   background-color: #ffffff;
 }
@@ -94,7 +98,7 @@ ol li {
 }
 
 button {
-  width: 50%; /* Make buttons full width */
+  width: 100%; /* Make buttons full width on small screens */
   padding: 10px;
   font-size: 16px;
   margin-top: 10px;
@@ -120,5 +124,26 @@ button:focus {
 .submit-button {
   width: 30%;
   background-color: black;
+}
+
+/* Bootstrap grid adjustment for responsiveness */
+@media (min-width: 992px) {
+  .question-container {
+    max-width: 800px; /* Limit the width to 800px for larger screens */
+    margin: 0 auto; /* Center the question container */
+  }
+
+  .submit-button {
+    width: 30%; /* Adjust submit button width for larger screens */
+  }
+}
+
+@media (max-width: 768px) {
+  .question-container {
+    width: 100%;
+  }
+  .submit-button {
+    width: 50%; /* Button width is 50% for small screens */
+  }
 }
 </style>

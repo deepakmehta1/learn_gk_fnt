@@ -1,7 +1,12 @@
 <template>
   <div class="quiz-playground-view">
     <!-- View Progress Button -->
-    <button class="btn btn-info" @click="showProgressModal = true">View Progress</button>
+    <button
+      class="btn btn-info position-absolute top-0 end-12 m-3 show-progress-button"
+      @click="showProgressModal = true"
+    >
+      View Progress
+    </button>
 
     <!-- Progress Modal -->
     <div v-if="showProgressModal" class="modal">
@@ -17,12 +22,14 @@
     </div>
 
     <!-- Question Component -->
-    <Question />
+    <div class="d-flex justify-content-center align-items-center" style="height: 80vh">
+      <Question />
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref, onMounted } from 'vue'
+import { defineComponent, computed, ref } from 'vue'
 import { useQuizStore } from '@/stores/quizStore' // Access quiz store
 import Question from '@/components/Question.vue' // Import the Question component
 import { useLanguageStore } from '@/stores/languageStore' // Access the language store
@@ -73,7 +80,7 @@ export default defineComponent({
 
 <style scoped>
 .quiz-playground-view {
-  text-align: center;
+  position: relative;
   margin: 2rem;
 }
 
@@ -123,5 +130,18 @@ export default defineComponent({
 
 h3 {
   margin-bottom: 20px;
+}
+
+/* Centering the question in the middle of the screen */
+.question-container {
+  text-align: center;
+}
+
+/* Bootstrap grid adjustment for responsiveness */
+@media (max-width: 768px) {
+  .show-progress-button {
+    width: 100%;
+    margin: 0 auto;
+  }
 }
 </style>

@@ -1,13 +1,13 @@
 <template>
   <div class="question-container">
-    <!-- Display current question -->
-    <h2>{{ currentQuestion?.text_en }}</h2>
+    <!-- Display current question based on language -->
+    <h2>{{ currentQuestion?.[`text_${language}`] }}</h2>
 
     <!-- Ordered list for the options -->
     <ol class="options-list">
       <ol v-for="(option, index) in currentQuestion?.choices" :key="option.id">
         <button class="btn btn-option" @click="selectAnswer(option.id)">
-          {{ String.fromCharCode(65 + index) }}. {{ option.text_en }}
+          {{ String.fromCharCode(65 + index) }}. {{ option[`text_${language}`] }}
         </button>
       </ol>
     </ol>
@@ -29,7 +29,13 @@ import type { Question } from '@/types/quizTypes' // Import the Question type
 
 export default defineComponent({
   name: 'Question',
-  setup() {
+  props: {
+    language: {
+      type: String,
+      required: true,
+    },
+  },
+  setup(props) {
     const quizStore = useQuizStore() // Access quiz store
 
     // Computed to get the current question from the store
@@ -81,7 +87,7 @@ export default defineComponent({
 .question-container {
   width: 100%; /* By default, take full width */
   padding: 20px;
-  background-color: #ffffff;
+  background-color: #fbfbfb;
 }
 
 h2 {
@@ -102,7 +108,7 @@ button {
   padding: 10px;
   font-size: 16px;
   margin-top: 10px;
-  background-color: #dce8df;
+  background-color: #e3e8ba;
   border: none;
   color: white;
   border-radius: 5px;

@@ -1,12 +1,5 @@
 <template>
   <div id="app">
-    <!-- Language Toggle Button at the top right -->
-    <div class="language-toggle">
-      <button @click="toggleLanguage">
-        Switch to {{ currentLanguage === 'en' ? 'Hindi' : 'English' }}
-      </button>
-    </div>
-
     <!-- Main content -->
     <router-view />
     <!-- This is where the routed views (like HomeView) will be rendered -->
@@ -39,17 +32,5 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.language-toggle {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: #fff;
-  border: none;
-  padding: 10px;
-  cursor: pointer;
-}
-
-.language-toggle button {
-  font-size: 16px;
-}
+/* No changes here, removed language toggle button styles */
 </style>

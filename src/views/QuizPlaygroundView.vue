@@ -23,7 +23,7 @@
 
     <!-- Question Component -->
     <div class="d-flex justify-content-center align-items-center" style="height: 80vh">
-      <Question />
+      <Question :language="languageStore.language" />
     </div>
   </div>
 </template>
@@ -73,6 +73,7 @@ export default defineComponent({
       showProgressModal,
       progress,
       currentSubunit,
+      languageStore,
     }
   },
 })

@@ -1,12 +1,16 @@
 <template>
   <div class="question-container">
     <!-- Display current question based on language -->
-    <h2>{{ currentQuestion?.[`text_${language}`] }}</h2>
+    <h2>Question {{ currentQuestion?.id }}: {{ currentQuestion?.[`text_${language}`] }}</h2>
 
     <!-- Ordered list for the options -->
     <ol class="options-list">
       <ol v-for="(option, index) in currentQuestion?.choices" :key="option.id">
-        <button class="btn btn-option" @click="selectAnswer(option.id)">
+        <button
+          class="btn btn-option"
+          :class="{ selected: selectedOption === option.id }"
+          @click="selectAnswer(option.id)"
+        >
           {{ String.fromCharCode(65 + index) }}. {{ option[`text_${language}`] }}
         </button>
       </ol>
@@ -22,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, onMounted } from 'vue'
+import { defineComponent, computed, onMounted, ref } from 'vue'
 import { useQuizStore } from '@/stores/quizStore' // Access quiz store
 import { getSubunitQuestions, getQuestionById } from '@/api' // Import API methods
 import type { Question } from '@/types/quizTypes' // Import the Question type
@@ -37,6 +41,7 @@ export default defineComponent({
   },
   setup(props) {
     const quizStore = useQuizStore() // Access quiz store
+    const selectedOption = ref<number | null>(null) // Track selected option
 
     // Computed to get the current question from the store
     const currentQuestion = computed<Question | null>(() => quizStore.currentQuestion)
@@ -64,8 +69,7 @@ export default defineComponent({
 
     // Handle selecting an answer
     const selectAnswer = (optionId: number) => {
-      console.log('Selected answer:', optionId)
-      // Logic to check if the answer is correct and move to the next question
+      selectedOption.value = optionId // Mark the selected option
     }
 
     // Handle submitting the answer
@@ -76,6 +80,7 @@ export default defineComponent({
 
     return {
       currentQuestion,
+      selectedOption,
       selectAnswer,
       submitAnswer,
     }
@@ -130,6 +135,10 @@ button:focus {
 .submit-button {
   width: 30%;
   background-color: black;
+}
+
+.selected {
+  background-color: #218838 !important; /* Highlight the selected option */
 }
 
 /* Bootstrap grid adjustment for responsiveness */

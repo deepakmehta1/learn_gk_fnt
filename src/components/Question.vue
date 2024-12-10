@@ -9,6 +9,7 @@
         <button
           class="btn btn-option"
           :class="{ selected: selectedOption === option.id }"
+          :disabled="isAnswered"
           @click="selectAnswer(option.id)"
         >
           {{ String.fromCharCode(65 + index) }}. {{ option[`text_${language}`] }}
@@ -18,7 +19,11 @@
 
     <!-- Submit Answer Button -->
     <div class="d-flex justify-content-center">
-      <button class="btn btn-primary mt-3 submit-button" @click="submitAnswer">
+      <button
+        class="btn btn-primary mt-3 submit-button"
+        @click="submitAnswer"
+        :disabled="isAnswered || isSubmitting"
+      >
         Submit Answer
       </button>
     </div>
@@ -59,6 +64,8 @@ export default defineComponent({
     const selectedOption = ref<number | null>(null) // Track selected option
     const showResultModal = ref(false) // Control visibility of result modal
     const isCorrect = ref(false) // Track if the answer is correct
+    const isSubmitting = ref(false) // Track if the submit button is clicked
+    const isAnswered = ref(false) // Track if the answer is submitted
 
     // Computed to get the current question from the store
     const currentQuestion = computed<Question | null>(() => quizStore.currentQuestion)
@@ -86,12 +93,17 @@ export default defineComponent({
 
     // Handle selecting an answer
     const selectAnswer = (optionId: number) => {
-      selectedOption.value = optionId // Mark the selected option
+      if (!isAnswered.value) {
+        // Allow selection only if the question hasn't been answered
+        selectedOption.value = optionId // Mark the selected option
+      }
     }
 
     // Handle submitting the answer
     const submitAnswer = async () => {
       if (selectedOption.value !== null && currentQuestion.value) {
+        isSubmitting.value = true // Disable the button while submitting
+
         try {
           // Submit the answer
           const response = await submitQuestionAnswer(
@@ -102,6 +114,7 @@ export default defineComponent({
           // Show the result modal based on the response
           showResultModal.value = true
           isCorrect.value = response.correct // If correct is true, show correct answer, otherwise show incorrect
+          isAnswered.value = true // Mark the question as answered, preventing further interactions
         } catch (error) {
           console.error('Error submitting answer:', error)
         }
@@ -117,6 +130,8 @@ export default defineComponent({
       submitAnswer, // Make sure to return submitAnswer so it can be used in the template
       showResultModal,
       isCorrect,
+      isSubmitting,
+      isAnswered, // Pass isAnswered to control the submission and selection logic
     }
   },
 })

@@ -22,6 +22,21 @@
         Submit Answer
       </button>
     </div>
+
+    <!-- Modal for showing correct/incorrect answer -->
+    <div v-if="showResultModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn" @click="showResultModal = false">&times;</span>
+        <div v-if="isCorrect">
+          <img src="/correct_answer.gif" alt="Correct Answer" />
+          <h3>Correct Answer!</h3>
+        </div>
+        <div v-else>
+          <img src="/incorrect_answer.gif" alt="Incorrect Answer" />
+          <h3>Incorrect Answer. Try Again!</h3>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -39,9 +54,11 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
+  setup() {
     const quizStore = useQuizStore() // Access quiz store
     const selectedOption = ref<number | null>(null) // Track selected option
+    const showResultModal = ref(false) // Control visibility of result modal
+    const isCorrect = ref(false) // Track if the answer is correct
 
     // Computed to get the current question from the store
     const currentQuestion = computed<Question | null>(() => quizStore.currentQuestion)
@@ -76,11 +93,15 @@ export default defineComponent({
     const submitAnswer = async () => {
       if (selectedOption.value !== null && currentQuestion.value) {
         try {
+          // Submit the answer
           const response = await submitQuestionAnswer(
             currentQuestion.value.id,
             selectedOption.value,
           )
-          console.log('Answer submitted successfully:', response)
+
+          // Show the result modal based on the response
+          showResultModal.value = true
+          isCorrect.value = response.correct // If correct is true, show correct answer, otherwise show incorrect
         } catch (error) {
           console.error('Error submitting answer:', error)
         }
@@ -94,6 +115,8 @@ export default defineComponent({
       selectedOption,
       selectAnswer,
       submitAnswer, // Make sure to return submitAnswer so it can be used in the template
+      showResultModal,
+      isCorrect,
     }
   },
 })
@@ -150,6 +173,52 @@ button:focus {
 
 .selected {
   background-color: #218838 !important; /* Highlight the selected option */
+}
+
+/* Modal for showing result */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  width: 400px;
+  text-align: center;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+.progress-bar-container {
+  width: 100%;
+  background-color: #f1f1f1;
+  border-radius: 5px;
+  margin: 10px 0;
+}
+
+.progress-bar {
+  height: 20px;
+  background-color: #28a745;
+  border-radius: 5px;
+}
+
+h3 {
+  margin-bottom: 20px;
 }
 
 /* Bootstrap grid adjustment for responsiveness */

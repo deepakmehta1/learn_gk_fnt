@@ -57,6 +57,8 @@ export const getQuestionById = async (questionId: number) => {
 
 // Submit the answer for the given question
 export const submitQuestionAnswer = async (questionId: number, choiceId: number) => {
+  const BEARER_TOKEN = 'your-hardcoded-bearer-token-here'
+
   try {
     const response = await axios.post(
       `${BASE_URL}/quiz/question/${questionId}/submit`,
@@ -67,9 +69,9 @@ export const submitQuestionAnswer = async (questionId: number, choiceId: number)
         },
       },
     )
-    return response.data
+    return response.data // Response should include { correct: boolean, message: string }
   } catch (error) {
-    console.error('Error submitting answer:', error)
+    console.error('Error submitting question answer:', error)
     throw error
   }
 }

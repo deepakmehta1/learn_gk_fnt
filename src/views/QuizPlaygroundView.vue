@@ -1,29 +1,41 @@
 <template>
   <div class="quiz-playground-view">
-    <!-- View Progress Button -->
-    <button
-      class="btn btn-info position-absolute top-0 end-12 m-3 show-progress-button"
-      @click="showProgressModal = true"
-    >
-      View Progress
-    </button>
+    <!-- Sidebar Component -->
+    <Sidebar />
 
-    <!-- Progress Modal -->
-    <div v-if="showProgressModal" class="modal">
-      <div class="modal-content">
-        <span class="close-btn" @click="showProgressModal = false">&times;</span>
-        <h3>Quiz Progress</h3>
-        <div class="progress-bar-container">
-          <div class="progress-bar" :style="{ width: progress + '%' }"></div>
+    <!-- Main content area -->
+    <div class="content-area">
+      <!-- Title in the top center -->
+      <h2 class="text-center mt-4">
+        {{ languageStore.language === 'en' ? 'Practicing: ' : 'अभ्यास कर रहे हैं: ' }}
+        {{ quizStore.currentBook?.[`title_${languageStore.language}`] }}
+      </h2>
+
+      <!-- View Progress Button -->
+      <button
+        class="btn btn-info position-absolute top-0 end-0 m-3 show-progress-button"
+        @click="showProgressModal = true"
+      >
+        View Progress
+      </button>
+
+      <!-- Progress Modal -->
+      <div v-if="showProgressModal" class="modal">
+        <div class="modal-content">
+          <span class="close-btn" @click="showProgressModal = false">&times;</span>
+          <h3>Quiz Progress</h3>
+          <div class="progress-bar-container">
+            <div class="progress-bar" :style="{ width: progress + '%' }"></div>
+          </div>
+          <p>{{ progress }}% Completed</p>
+          <p>Current Subunit: {{ currentSubunit?.[`title_${languageStore.language}`] }}</p>
         </div>
-        <p>{{ progress }}% Completed</p>
-        <p>Current Subunit: {{ currentSubunit?.title_en }}</p>
       </div>
-    </div>
 
-    <!-- Question Component -->
-    <div class="d-flex justify-content-center align-items-center" style="height: 80vh">
-      <Question :language="languageStore.language" />
+      <!-- Question Component -->
+      <div class="d-flex justify-content-center align-items-center" style="height: 80vh">
+        <Question :language="languageStore.language" />
+      </div>
     </div>
   </div>
 </template>
@@ -32,12 +44,14 @@
 import { defineComponent, computed, ref } from 'vue'
 import { useQuizStore } from '@/stores/quizStore' // Access quiz store
 import Question from '@/components/Question.vue' // Import the Question component
+import Sidebar from '@/components/Sidebar.vue' // Import the Sidebar component
 import { useLanguageStore } from '@/stores/languageStore' // Access the language store
 
 export default defineComponent({
   name: 'QuizPlaygroundView',
   components: {
     Question,
+    Sidebar, // Include Sidebar here
   },
   setup() {
     const quizStore = useQuizStore() // Access quiz store
@@ -65,7 +79,7 @@ export default defineComponent({
 
     // Get current subunit title
     const currentSubunit = computed(() => {
-      const currentUnit = quizStore.currentBook?.units[0] // Access the first unit as an example
+      const currentUnit = quizStore.currentBook?.units[0] // Access the first unit
       return currentUnit?.subunits[quizStore.currentQuestionIndex]
     })
 
@@ -74,6 +88,7 @@ export default defineComponent({
       progress,
       currentSubunit,
       languageStore,
+      quizStore,
     }
   },
 })
@@ -81,12 +96,17 @@ export default defineComponent({
 
 <style scoped>
 .quiz-playground-view {
-  position: relative;
-  margin: 2rem;
+  display: flex;
+  flex-direction: row;
+  margin: 0;
+  padding: 0;
 }
 
-.btn-info {
-  margin-top: 1rem;
+.show-progress-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
 }
 
 .modal {
@@ -133,12 +153,16 @@ h3 {
   margin-bottom: 20px;
 }
 
-/* Centering the question in the middle of the screen */
-.question-container {
-  text-align: center;
+/* Content Area */
+.content-area {
+  flex: 1;
 }
 
-/* Bootstrap grid adjustment for responsiveness */
+h2 {
+  font-size: 30px;
+  font-weight: bold;
+}
+
 @media (max-width: 768px) {
   .show-progress-button {
     width: 100%;

@@ -89,7 +89,8 @@ export const useQuizStore = defineStore('quiz', {
 
       // Check if there are more questions in the current subunit
       if (nextQuestionIndex < this.currentQuestions.length) {
-        this.setCurrentQuestion(this.currentQuestions[nextQuestionIndex])
+        const questionDetails = await getQuestionById(this.currentQuestions[nextQuestionIndex].id) // Get full question details from API
+        this.setCurrentQuestion(questionDetails)
         this.setCurrentQuestionIndex(nextQuestionIndex)
       } else {
         // Move to the next subunit if the current subunit is completed

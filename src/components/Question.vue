@@ -60,7 +60,7 @@
 <script lang="ts">
 import { defineComponent, computed, onMounted, ref } from 'vue'
 import { useQuizStore } from '@/stores/quizStore' // Access quiz store
-import { getSubunitQuestions, getQuestionById, submitQuestionAnswer } from '@/api' // Import API methods
+import { getSubunitQuestions, getQuestionById, submitQuestionAnswer, getUserProgress } from '@/api' // Import API methods
 import type { Question } from '@/types/quizTypes' // Import the Question type
 
 export default defineComponent({
@@ -82,23 +82,44 @@ export default defineComponent({
     // Computed to get the current question from the store
     const currentQuestion = computed<Question | null>(() => quizStore.currentQuestion)
 
-    // Fetch questions for the first subunit of the current book if no question is set
+    // Fetch user progress on reload
     onMounted(async () => {
-      if (!quizStore.currentQuestion && quizStore.currentBook) {
+      if (quizStore.currentBook) {
         try {
-          const firstUnit = quizStore.currentBook?.units[0] // Access the first unit
-          const firstSubunit = firstUnit?.subunits[0] // Access the first subunit
+          const progressResponse = await getUserProgress(quizStore.currentBook.id)
 
-          if (firstSubunit) {
-            const questions = await getSubunitQuestions(firstSubunit.id)
+          // Get the last answered question from the API response
+          const lastQuestion = progressResponse.recent_question_details[0]
+          const currentUnit = quizStore.currentBook?.units.find(
+            (unit) => unit.id === lastQuestion.unit_id,
+          )
+          const currentSubunit = currentUnit?.subunits.find(
+            (subunit) => subunit.id === lastQuestion.sub_unit_id,
+          )
+          // console.log("currentUnit", currentUnit);
+          // console.log("currentSubunit", currentSubunit);
+          if (currentSubunit) {
+            const questions = await getSubunitQuestions(currentSubunit.id)
             quizStore.setQuestions(questions)
-            if (questions.length > 0) {
-              quizStore.setCurrentQuestion(questions[0]) // Set the first question
-              await getQuestionById(questions[0].id) // Track question view
+            const lastAnsweredQuestionIndex = questions.findIndex(
+              (question) => question.id === lastQuestion.question_id,
+            )
+
+            // Call get question by id here to ensure backend updates
+            const questionDetails = await getQuestionById(lastQuestion.question_id)
+            quizStore.setCurrentQuestion(questionDetails) // Set question details
+            quizStore.setCurrentQuestionIndex(lastAnsweredQuestionIndex) // Update the question index
+
+            // Set the current unit and subunit indexes
+            const unitIndex = quizStore.currentBook?.units.indexOf(currentUnit)
+            const subunitIndex = currentUnit?.subunits.indexOf(currentSubunit)
+            if (unitIndex !== undefined && subunitIndex !== undefined) {
+              quizStore.setCurrentUnitIndex(unitIndex)
+              quizStore.setCurrentSubunitIndex(subunitIndex)
             }
           }
         } catch (error) {
-          console.error('Error fetching subunit questions:', error)
+          console.error('Error fetching user progress:', error)
         }
       }
     })
@@ -137,18 +158,11 @@ export default defineComponent({
 
     // Handle next question
     const nextQuestion = () => {
-      if (quizStore.currentQuestions.length > 0) {
-        // Move to the next question
-        const currentIndex = quizStore.currentQuestionIndex
-        if (currentIndex + 1 < quizStore.currentQuestions.length) {
-          quizStore.setCurrentQuestion(quizStore.currentQuestions[currentIndex + 1]) // Set the next question
-          quizStore.setCurrentQuestionIndex(currentIndex + 1) // Increment the index
-          selectedOption.value = null // Reset selected option
-          isAnswered.value = false // Allow answer selection again
-          showResultModal.value = false // Close the result modal
-          isSubmitting.value = false
-        }
-      }
+      quizStore.moveToNextQuestion()
+      selectedOption.value = null // Reset selected option
+      isAnswered.value = false // Allow answer selection again
+      showResultModal.value = false // Close the result modal
+      isSubmitting.value = false
     }
 
     return {

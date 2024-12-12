@@ -1,9 +1,8 @@
-// src/stores/quizStore.ts
-
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Question } from '@/types/quizTypes' // Import Question type
-import type { Book } from '@/types/unitTypes' // Import the Book, Unit, and Subunit types
+import type { Book, Unit, Subunit } from '@/types/unitTypes' // Import the Book, Unit, and Subunit types
+import { getSubunitQuestions, getQuestionById } from '@/api' // Import API methods
 
 export const useQuizStore = defineStore('quiz', {
   state: () => {
@@ -12,6 +11,8 @@ export const useQuizStore = defineStore('quiz', {
       currentQuestions: ref<Question[]>([]), // Array of questions
       currentQuestion: ref<Question | null>(null), // Current question, either null or a Question object
       currentQuestionIndex: ref(0),
+      currentSubunitIndex: ref(0), // Track the current subunit index
+      currentUnitIndex: ref(0), // Track the current unit index
     }
   },
   actions: {
@@ -34,6 +35,92 @@ export const useQuizStore = defineStore('quiz', {
     setCurrentQuestionIndex(index: number) {
       this.currentQuestionIndex = index
     },
+
+    // Set the current subunit index
+    setCurrentSubunitIndex(index: number) {
+      this.currentSubunitIndex = index
+    },
+
+    // Set the current unit index
+    setCurrentUnitIndex(index: number) {
+      this.currentUnitIndex = index
+    },
+
+    // Get sorted list of units by ID in increasing order
+    getSortedUnits(): Unit[] {
+      return this.currentBook?.units.sort((a, b) => a.id - b.id) || []
+    },
+
+    // Get sorted list of subunits by ID in increasing order for a specific unit
+    getSortedSubunits(unit: Unit): Subunit[] {
+      return unit.subunits.sort((a, b) => a.id - b.id)
+    },
+
+    // Fetch questions for the current subunit and update state
+    async fetchQuestionsForCurrentSubunit() {
+      // Get the sorted units and subunits
+      const currentUnit = this.getSortedUnits()[this.currentUnitIndex]
+      const currentSubunit = this.getSortedSubunits(currentUnit)[this.currentSubunitIndex]
+
+      if (currentSubunit) {
+        try {
+          // Fetch the questions for the current subunit
+          const questions = await getSubunitQuestions(currentSubunit.id)
+          this.setQuestions(questions)
+
+          // Set the first question from the fetched questions
+          this.setCurrentQuestion(questions[0])
+          this.setCurrentQuestionIndex(0) // Reset the index to 0 for the first question in the subunit
+
+          // Ensure that the question is fetched by its ID to update the backend (like marking the question as attempted)
+          const questionDetails = await getQuestionById(questions[0].id) // Get full question details from API
+          this.setCurrentQuestion(questionDetails) // Set the full question details in the store
+        } catch (error) {
+          console.error('Error fetching subunit questions:', error)
+        }
+      }
+    },
+
+    // Move to the next question (handle moving to next subunit/unit if needed)
+    async moveToNextQuestion() {
+      const currentUnit = this.getSortedUnits()[this.currentUnitIndex]
+      const currentSubunit = this.getSortedSubunits(currentUnit)[this.currentSubunitIndex]
+      const nextQuestionIndex = this.currentQuestionIndex + 1
+
+      // Check if there are more questions in the current subunit
+      if (nextQuestionIndex < this.currentQuestions.length) {
+        this.setCurrentQuestion(this.currentQuestions[nextQuestionIndex])
+        this.setCurrentQuestionIndex(nextQuestionIndex)
+      } else {
+        // Move to the next subunit if the current subunit is completed
+        const nextSubunitIndex = this.currentSubunitIndex + 1
+        if (nextSubunitIndex < currentUnit?.subunits.length) {
+          this.setCurrentSubunitIndex(nextSubunitIndex)
+          this.setCurrentQuestionIndex(0) // Reset to first question in the next subunit
+          // Fetch questions for the next subunit
+          await this.fetchQuestionsForCurrentSubunit() // Ensure questions are fetched first
+        } else {
+          // Move to the next unit if the current unit is completed
+          const nextUnitIndex = this.currentUnitIndex + 1
+          if (nextUnitIndex < this.currentBook?.units.length) {
+            this.setCurrentUnitIndex(nextUnitIndex)
+            this.setCurrentSubunitIndex(0) // Reset to the first subunit in the next unit
+            this.setCurrentQuestionIndex(0)
+            // Fetch questions for the first subunit of the next unit
+            await this.fetchQuestionsForCurrentSubunit() // Ensure questions are fetched first
+          } else {
+            // End of the quiz, handle quiz completion
+            this.finishQuiz()
+          }
+        }
+      }
+    },
+
+    // Finish the quiz (end of quiz scenario)
+    finishQuiz() {
+      console.log('Quiz Finished')
+      // Optionally, you can trigger any action on quiz completion, such as saving results
+    },
   },
   persist: {
     enabled: true, // Enable the persistence
@@ -41,7 +128,14 @@ export const useQuizStore = defineStore('quiz', {
       {
         key: 'quiz', // Key used in localStorage or sessionStorage
         storage: localStorage, // Use localStorage for persistence
-        paths: ['currentBook', 'currentQuestions', 'currentQuestion', 'currentQuestionIndex'], // Only persist these parts of the state
+        paths: [
+          'currentBook',
+          'currentQuestions',
+          'currentQuestion',
+          'currentQuestionIndex',
+          'currentSubunitIndex',
+          'currentUnitIndex',
+        ], // Persist these parts of the state
       },
     ],
   },

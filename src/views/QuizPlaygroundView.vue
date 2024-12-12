@@ -79,8 +79,8 @@ export default defineComponent({
 
     // Get current subunit title
     const currentSubunit = computed(() => {
-      const currentUnit = quizStore.currentBook?.units[0] // Access the first unit
-      return currentUnit?.subunits[quizStore.currentQuestionIndex]
+      const currentUnit = quizStore.getSortedUnits()[quizStore.currentUnitIndex]
+      return quizStore.getSortedSubunits(currentUnit)[quizStore.currentSubunitIndex]
     })
 
     return {

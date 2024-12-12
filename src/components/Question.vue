@@ -8,7 +8,11 @@
       <ol v-for="(option, index) in currentQuestion?.choices" :key="option.id">
         <button
           class="btn btn-option"
-          :class="{ selected: selectedOption === option.id }"
+          :class="{
+            selected: selectedOption === option.id,
+            incorrect: isAnswered && selectedOption === option.id && option.id !== correctOptionId,
+            correct: isAnswered && option.id === correctOptionId,
+          }"
           :disabled="isAnswered"
           @click="selectAnswer(option.id)"
         >
@@ -74,6 +78,7 @@ export default defineComponent({
   setup(props) {
     const quizStore = useQuizStore() // Access quiz store
     const selectedOption = ref<number | null>(null) // Track selected option
+    const correctOptionId = ref<number | null>(null) // Track the correct option id
     const showResultModal = ref(false) // Control visibility of result modal
     const isCorrect = ref(false) // Track if the answer is correct
     const isSubmitting = ref(false) // Track if the submit button is clicked
@@ -96,8 +101,6 @@ export default defineComponent({
           const currentSubunit = currentUnit?.subunits.find(
             (subunit) => subunit.id === lastQuestion.sub_unit_id,
           )
-          // console.log("currentUnit", currentUnit);
-          // console.log("currentSubunit", currentSubunit);
           if (currentSubunit) {
             const questions = await getSubunitQuestions(currentSubunit.id)
             quizStore.setQuestions(questions)
@@ -147,6 +150,7 @@ export default defineComponent({
           // Show the result modal based on the response
           showResultModal.value = true
           isCorrect.value = response.correct // If correct is true, show correct answer, otherwise show incorrect
+          correctOptionId.value = response.correct_option_id // Store the correct option ID
           isAnswered.value = true // Mark the question as answered, preventing further interactions
         } catch (error) {
           console.error('Error submitting answer:', error)
@@ -175,6 +179,7 @@ export default defineComponent({
       isSubmitting,
       isAnswered,
       nextQuestion, // Return nextQuestion to bind to the "Next Question" button
+      correctOptionId, // Return the correct option ID
     }
   },
 })
@@ -230,7 +235,15 @@ button:focus {
 }
 
 .selected {
-  background-color: #218838 !important; /* Highlight the selected option */
+  background-color: #8d89ab !important; /* Highlight the selected option */
+}
+
+.correct {
+  background-color: #28a745 !important; /* Correct answer in green */
+}
+
+.incorrect {
+  background-color: #dc3545 !important; /* Incorrect answer in red */
 }
 
 .next-question-button {
@@ -271,7 +284,7 @@ button:focus {
 .modal {
   position: fixed;
   top: 0;
-  left: 0;
+  left: 10%;
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);

@@ -75,3 +75,18 @@ export const submitQuestionAnswer = async (questionId: number, choiceId: number)
     throw error
   }
 }
+
+// Fetch the user's progress for a specific book
+export const getUserProgress = async (bookId: number) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/user/progress?type=book&type_id=${bookId}`, {
+      headers: {
+        Authorization: `Bearer ${BEARER_TOKEN}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.error('Error fetching user progress:', error)
+    throw error
+  }
+}

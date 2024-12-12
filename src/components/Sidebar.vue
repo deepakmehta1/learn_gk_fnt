@@ -37,20 +37,36 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref, onMounted } from 'vue'
 import { useQuizStore } from '@/stores/quizStore' // Access quiz store
 import { useLanguageStore } from '@/stores/languageStore' // Access language store
+import { getUserProgress } from '@/api' // Import the API function to fetch user progress
+import { UserProgress } from '@/types/progressTypes' // Import the UserProgress type
 
 export default defineComponent({
   name: 'Sidebar',
   setup() {
     const quizStore = useQuizStore() // Access quiz store
     const languageStore = useLanguageStore() // Access language store
+    const currentSubunitId = ref<number | null>(null)
 
-    // Computed to get the current subunit based on the current question index
+    // Fetch the user's progress on component mount
+    onMounted(async () => {
+      if (quizStore.currentBook) {
+        try {
+          const progress: UserProgress = await getUserProgress(quizStore.currentBook.id) // Use the typed response
+          const recentQuestion = progress.recent_question_details[0]
+          currentSubunitId.value = recentQuestion.sub_unit_id
+        } catch (error) {
+          console.error('Error fetching user progress:', error)
+        }
+      }
+    })
+
+    // Computed to get the current subunit based on the user's progress
     const currentSubunit = computed(() => {
       const currentUnit = quizStore.currentBook?.units[0] // Access the first unit
-      return currentUnit?.subunits[quizStore.currentQuestionIndex]
+      return currentUnit?.subunits.find((subunit) => subunit.id === currentSubunitId.value) // Find the subunit by ID
     })
 
     // Function to check if the subunit is the current one

@@ -65,8 +65,8 @@ export default defineComponent({
 
     // Computed to get the current subunit based on the user's progress
     const currentSubunit = computed(() => {
-      const currentUnit = quizStore.currentBook?.units[0] // Access the first unit
-      return currentUnit?.subunits.find((subunit) => subunit.id === currentSubunitId.value) // Find the subunit by ID
+      const currentUnit = quizStore.getSortedUnits()[quizStore.currentUnitIndex]
+      return quizStore.getSortedSubunits(currentUnit)[quizStore.currentSubunitIndex]
     })
 
     // Function to check if the subunit is the current one

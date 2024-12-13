@@ -9,6 +9,9 @@
       <i class="fas fa-play-circle"></i> Start Practicing
     </button>
 
+    <!-- Loader Component - This will be shown when the user clicks "Start Practicing" -->
+    <Loader v-if="isLoading" :subunitTitles="subunitTitles" />
+
     <div class="card-body">
       <!-- Display title based on current language (en/hi) -->
       <h5 class="card-title">{{ book[`title_${languageStore.language}` as keyof typeof book] }}</h5>
@@ -38,6 +41,7 @@ import UnitsList from './UnitsList.vue' // UnitsList component
 import type { Unit, Book } from '@/types/unitTypes' // Import Unit and Book types
 import { useQuizStore } from '@/stores/quizStore' // Import the quiz store
 import { useRouter } from 'vue-router' // To navigate to a new route
+import Loader from '@/components/Loader.vue' // Import the Loader component
 
 export default defineComponent({
   name: 'BookCard',
@@ -49,6 +53,7 @@ export default defineComponent({
   },
   components: {
     UnitsList, // Register UnitsList component
+    Loader, // Register the Loader component
   },
   setup(props) {
     const languageStore = useLanguageStore() // Access language store
@@ -56,6 +61,7 @@ export default defineComponent({
     const isExpanded = ref(false) // Track the visibility of units
     const quizStore = useQuizStore() // Access quiz store
     const router = useRouter() // To navigate to new route
+    const isLoading = ref(false) // Track loader visibility
 
     // Reactive computed property for current language
     const currentLanguage = computed(() => languageStore.language)
@@ -76,11 +82,27 @@ export default defineComponent({
 
     // Start practicing: save book in store and navigate to quiz playground
     const startPracticing = () => {
+      isLoading.value = true // Show loader
       // Save current book in the store using the store instance
       quizStore.setCurrentBook(props.book)
-      // Navigate to quiz playground
-      router.push('/quiz-playground')
+      setTimeout(() => {
+        // After 3 seconds, navigate to quiz playground
+        router.push('/quiz-playground')
+      }, 5000) // 5 seconds
     }
+
+    // Get the titles of all subunits
+    const subunitTitles = computed(() => {
+      const subunitTitlesArray: string[] = []
+      if (quizStore.currentBook) {
+        quizStore.currentBook.units.forEach((unit) => {
+          unit.subunits.forEach((subunit) => {
+            subunitTitlesArray.push(subunit[`title_${languageStore.language}`])
+          })
+        })
+      }
+      return subunitTitlesArray
+    })
 
     return {
       units,
@@ -90,6 +112,8 @@ export default defineComponent({
       currentLanguage,
       book_obj: props.book,
       startPracticing, // Expose the startPracticing method
+      isLoading, // Expose the loading state
+      subunitTitles,
     }
   },
 })

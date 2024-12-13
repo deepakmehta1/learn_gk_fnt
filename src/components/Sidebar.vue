@@ -2,7 +2,7 @@
   <div id="sidebar-container" class="sidebar-expanded">
     <!-- Timeline -->
     <ul class="list-group">
-      <li class="list-group-item sidebar-separator-title text-muted">Book Progress</li>
+      <li class="list-group-item sidebar-separator-title">Book Progress</li>
 
       <!-- Iterate over units and subunits -->
       <li

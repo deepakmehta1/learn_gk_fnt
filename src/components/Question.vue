@@ -32,6 +32,11 @@
       </button>
     </div>
 
+    <!-- Submitting loader -->
+    <div v-if="isSubmitting" class="loader-container">
+      <span class="loader">Submitting<span class="dots"></span></span>
+    </div>
+
     <!-- Next Question Button -->
     <div class="d-flex justify-content-center">
       <button
@@ -138,7 +143,7 @@ export default defineComponent({
     // Handle submitting the answer
     const submitAnswer = async () => {
       if (selectedOption.value !== null && currentQuestion.value) {
-        isSubmitting.value = true // Disable the button while submitting
+        isSubmitting.value = true // Enable the loader
 
         try {
           // Submit the answer
@@ -147,13 +152,19 @@ export default defineComponent({
             selectedOption.value,
           )
 
-          // Show the result modal based on the response
-          showResultModal.value = true
-          isCorrect.value = response.correct // If correct is true, show correct answer, otherwise show incorrect
-          correctOptionId.value = response.correct_option_id // Store the correct option ID
-          isAnswered.value = true // Mark the question as answered, preventing further interactions
+          // Wait for 3 seconds before showing the result modal
+          setTimeout(() => {
+            showResultModal.value = true
+            isCorrect.value = response.correct // If correct is true, show correct answer, otherwise show incorrect
+            correctOptionId.value = response.correct_option_id // Store the correct option ID
+            isAnswered.value = true // Mark the question as answered, preventing further interactions
+
+            // Hide the loader after 3 seconds
+            isSubmitting.value = false
+          }, 3000) // Delay for 3 seconds
         } catch (error) {
           console.error('Error submitting answer:', error)
+          isSubmitting.value = false // Hide the loader if there's an error
         }
       } else {
         console.log('No option selected')
@@ -166,7 +177,7 @@ export default defineComponent({
       selectedOption.value = null // Reset selected option
       isAnswered.value = false // Allow answer selection again
       showResultModal.value = false // Close the result modal
-      isSubmitting.value = false
+      isSubmitting.value = false // Hide loader when moving to next question
     }
 
     return {
@@ -277,6 +288,46 @@ button:focus {
   100% {
     transform: scale(1);
     box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+  }
+}
+
+/* Submitting loader */
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  font-size: 18px;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.7); /* Slight transparency */
+  margin-top: 20px;
+}
+
+.loader .dots::after {
+  content: '.';
+  animation: dot-blink 1s steps(5, end) infinite;
+}
+
+.loader .dots::before {
+  content: '.';
+  animation: dot-blink 1s steps(5, end) infinite 0.2s;
+}
+
+.loader {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Animation for the dots */
+@keyframes dot-blink {
+  0% {
+    content: '.';
+  }
+  50% {
+    content: '..';
+  }
+  100% {
+    content: '...';
   }
 }
 

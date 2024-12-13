@@ -29,6 +29,7 @@
           </div>
           <p>{{ progress }}% Completed</p>
           <p>Current Subunit: {{ currentSubunit?.[`title_${languageStore.language}`] }}</p>
+          <p>Questions Attempted: {{ attemptedQuestions }} / {{ totalQuestions }}</p>
         </div>
       </div>
 
@@ -58,23 +59,28 @@ export default defineComponent({
     const languageStore = useLanguageStore() // Access language store
     const showProgressModal = ref(false) // For controlling the visibility of the modal
 
-    // Compute current progress (percentage)
+    // Calculate the total number of questions in the current subunit
+    const totalQuestions = computed(() => {
+      return quizStore.currentQuestions.length
+    })
+
+    // Calculate the number of questions attempted based on the current question index
+    const attemptedQuestions = computed(() => {
+      return quizStore.currentQuestionIndex + 1
+    })
+
+    // Compute progress for the current subunit
     const progress = computed(() => {
       if (!quizStore.currentBook) return 0
 
-      // Calculate how many subunits the user has completed
-      const totalSubunits = quizStore.currentBook.units.reduce(
-        (acc, unit) => acc + unit.subunits.length,
-        0,
-      )
-      const completedSubunits = quizStore.currentBook.units.reduce((acc, unit) => {
-        return (
-          acc +
-          unit.subunits.filter((subunit) => subunit.id <= quizStore.currentQuestionIndex).length
-        )
-      }, 0)
+      const currentUnit = quizStore.getSortedUnits()[quizStore.currentUnitIndex]
+      const currentSubunit = quizStore.getSortedSubunits(currentUnit)[quizStore.currentSubunitIndex]
 
-      return (completedSubunits / totalSubunits) * 100
+      if (!currentSubunit) return 0
+
+      // Calculate percentage progress for the current subunit
+      const progressPercentage = (attemptedQuestions.value / totalQuestions.value) * 100
+      return progressPercentage
     })
 
     // Get current subunit title
@@ -89,6 +95,8 @@ export default defineComponent({
       currentSubunit,
       languageStore,
       quizStore,
+      totalQuestions,
+      attemptedQuestions,
     }
   },
 })

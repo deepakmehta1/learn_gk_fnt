@@ -24,6 +24,7 @@
               'bg-success': isCurrentSubunit(subunit),
               'text-white': isCurrentSubunit(subunit),
               'bg-secondary': !isCurrentSubunit(subunit),
+              blurry: !subunit.is_preview, // Add blurry class conditionally
             }"
           >
             <div class="d-flex justify-content-between subunit-title">
@@ -41,7 +42,8 @@ import { defineComponent, computed, ref, onMounted } from 'vue'
 import { useQuizStore } from '@/stores/quizStore' // Access quiz store
 import { useLanguageStore } from '@/stores/languageStore' // Access language store
 import { getUserProgress } from '@/api' // Import the API function to fetch user progress
-import { UserProgress } from '@/types/progressTypes' // Import the UserProgress type
+import type { UserProgress } from '@/types/progressTypes' // Import the UserProgress type
+import type { Subunit } from '@/types/unitTypes'
 
 export default defineComponent({
   name: 'Sidebar',
@@ -70,7 +72,7 @@ export default defineComponent({
     })
 
     // Function to check if the subunit is the current one
-    const isCurrentSubunit = (subunit: any) => {
+    const isCurrentSubunit = (subunit: Subunit) => {
       return subunit.id === currentSubunit.value?.id
     }
 
@@ -135,5 +137,9 @@ export default defineComponent({
 
 .subunit-title {
   font-size: 14px;
+}
+
+.blurry {
+  filter: blur(5px);
 }
 </style>

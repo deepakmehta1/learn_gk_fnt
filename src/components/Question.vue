@@ -1,65 +1,74 @@
 <template>
   <div class="question-container">
-    <!-- Display current question based on language -->
-    <h2>Question {{ currentQuestion?.id }}: {{ currentQuestion?.[`text_${language}`] }}</h2>
+    <div v-if="!showQuestion">
+      <!-- Show subscribe button if showQuestion is false -->
+      <button class="subscribe-button" @click="subscribeToViewAll">
+        Subscribe to view all questions 🚀
+      </button>
+    </div>
+    <div v-else>
+      <!-- Show question if showQuestion is true -->
+      <h2>Question {{ currentQuestion?.id }}: {{ currentQuestion?.[`text_${language}`] }}</h2>
 
-    <!-- Ordered list for the options -->
-    <ol class="options-list">
-      <ol v-for="(option, index) in currentQuestion?.choices" :key="option.id">
-        <button
-          class="btn btn-option"
-          :class="{
-            selected: selectedOption === option.id,
-            incorrect: isAnswered && selectedOption === option.id && option.id !== correctOptionId,
-            correct: isAnswered && option.id === correctOptionId,
-          }"
-          :disabled="isAnswered"
-          @click="selectAnswer(option.id)"
-        >
-          {{ String.fromCharCode(65 + index) }}. {{ option[`text_${language}`] }}
-        </button>
+      <!-- Options list -->
+      <ol class="options-list">
+        <ol v-for="(option, index) in currentQuestion?.choices" :key="option.id">
+          <button
+            class="btn btn-option"
+            :class="{
+              selected: selectedOption === option.id,
+              incorrect:
+                isAnswered && selectedOption === option.id && option.id !== correctOptionId,
+              correct: isAnswered && option.id === correctOptionId,
+            }"
+            :disabled="isAnswered"
+            @click="selectAnswer(option.id)"
+          >
+            {{ String.fromCharCode(65 + index) }}. {{ option[`text_${language}`] }}
+          </button>
+        </ol>
       </ol>
-    </ol>
 
-    <!-- Submit Answer Button -->
-    <div class="d-flex justify-content-center">
-      <button
-        class="btn btn-primary mt-3 submit-button"
-        @click="submitAnswer"
-        :disabled="isAnswered || isSubmitting"
-      >
-        Submit Answer
-      </button>
-    </div>
+      <!-- Submit button -->
+      <div class="d-flex justify-content-center">
+        <button
+          class="btn btn-primary mt-3 submit-button"
+          @click="submitAnswer"
+          :disabled="isAnswered || isSubmitting"
+        >
+          Submit Answer
+        </button>
+      </div>
 
-    <!-- Submitting loader -->
-    <div v-if="isSubmitting" class="loader-container">
-      <span class="loader">Submitting<span class="dots"></span></span>
-    </div>
+      <!-- Submitting loader -->
+      <div v-if="isSubmitting" class="loader-container">
+        <span class="loader">Submitting<span class="dots"></span></span>
+      </div>
 
-    <!-- Next Question Button -->
-    <div class="d-flex justify-content-center">
-      <button
-        class="btn btn-secondary mt-3 next-question-button"
-        @click="nextQuestion"
-        :disabled="!isAnswered"
-        :class="{ 'highlight-button': isAnswered }"
-      >
-        Next Question
-      </button>
-    </div>
+      <!-- Next Question Button -->
+      <div class="d-flex justify-content-center">
+        <button
+          class="btn btn-secondary mt-3 next-question-button"
+          @click="nextQuestion"
+          :disabled="!isAnswered"
+          :class="{ 'highlight-button': isAnswered }"
+        >
+          Next Question
+        </button>
+      </div>
 
-    <!-- Modal for showing correct/incorrect answer -->
-    <div v-if="showResultModal" class="modal">
-      <div class="modal-content">
-        <span class="close-btn" @click="showResultModal = false">&times;</span>
-        <div v-if="isCorrect">
-          <img src="/correct_answer.gif" alt="Correct Answer" />
-          <h3>Correct Answer!</h3>
-        </div>
-        <div v-else>
-          <img src="/incorrect_answer.gif" alt="Incorrect Answer" />
-          <h3>Incorrect Answer. Try Again!</h3>
+      <!-- Modal for showing correct/incorrect answer -->
+      <div v-if="showResultModal" class="modal">
+        <div class="modal-content">
+          <span class="close-btn" @click="showResultModal = false">&times;</span>
+          <div v-if="isCorrect">
+            <img src="/correct_answer.gif" alt="Correct Answer" />
+            <h3>Correct Answer!</h3>
+          </div>
+          <div v-else>
+            <img src="/incorrect_answer.gif" alt="Incorrect Answer" />
+            <h3>Incorrect Answer. Try Again!</h3>
+          </div>
         </div>
       </div>
     </div>
@@ -91,6 +100,7 @@ export default defineComponent({
 
     // Computed to get the current question from the store
     const currentQuestion = computed<Question | null>(() => quizStore.currentQuestion)
+    const showQuestion = computed(() => quizStore.showQuestion) // Access showQuestion from the store
 
     // Fetch user progress on reload
     onMounted(async () => {
@@ -106,24 +116,38 @@ export default defineComponent({
           const currentSubunit = currentUnit?.subunits.find(
             (subunit) => subunit.id === lastQuestion.sub_unit_id,
           )
+
           if (currentSubunit) {
             const questions = await getSubunitQuestions(currentSubunit.id)
-            quizStore.setQuestions(questions)
-            const lastAnsweredQuestionIndex = questions.findIndex(
-              (question) => question.id === lastQuestion.question_id,
-            )
+            console.log('questions ', questions)
+            // Check for error_code 101 in the questions response and return early if present
+            if (questions.error_code === 101) {
+              quizStore.sendSubscribeAction() // Call sendSubscribeAction if subscription is not found
+              return // Exit the function early to prevent further code execution
+            } else {
+              quizStore.setQuestions(questions)
+              const lastAnsweredQuestionIndex = questions.findIndex(
+                (question: Question) => question.id === lastQuestion.question_id,
+              )
 
-            // Call get question by id here to ensure backend updates
-            const questionDetails = await getQuestionById(lastQuestion.question_id)
-            quizStore.setCurrentQuestion(questionDetails) // Set question details
-            quizStore.setCurrentQuestionIndex(lastAnsweredQuestionIndex) // Update the question index
+              const questionDetails = await getQuestionById(lastQuestion.question_id)
 
-            // Set the current unit and subunit indexes
-            const unitIndex = quizStore.currentBook?.units.indexOf(currentUnit)
-            const subunitIndex = currentUnit?.subunits.indexOf(currentSubunit)
-            if (unitIndex !== undefined && subunitIndex !== undefined) {
-              quizStore.setCurrentUnitIndex(unitIndex)
-              quizStore.setCurrentSubunitIndex(subunitIndex)
+              // Check for error_code 101 in the question details and return early if present
+              if (questionDetails.error_code === 101) {
+                quizStore.sendSubscribeAction() // Call sendSubscribeAction if subscription is not found
+                return // Exit the function early to prevent further code execution
+              } else {
+                quizStore.setCurrentQuestion(questionDetails) // Set question details
+                quizStore.setCurrentQuestionIndex(lastAnsweredQuestionIndex) // Update the question index
+
+                // Set the current unit and subunit indexes
+                const unitIndex = quizStore.currentBook?.units.indexOf(currentUnit)
+                const subunitIndex = currentUnit?.subunits.indexOf(currentSubunit)
+                if (unitIndex !== undefined && subunitIndex !== undefined) {
+                  quizStore.setCurrentUnitIndex(unitIndex)
+                  quizStore.setCurrentSubunitIndex(subunitIndex)
+                }
+              }
             }
           }
         } catch (error) {
@@ -132,65 +156,62 @@ export default defineComponent({
       }
     })
 
+    const subscribeToViewAll = () => {
+      console.log('Subscription initiated...')
+      // Handle subscription action here
+    }
+
     // Handle selecting an answer
     const selectAnswer = (optionId: number) => {
       if (!isAnswered.value) {
-        // Allow selection only if the question hasn't been answered
-        selectedOption.value = optionId // Mark the selected option
+        selectedOption.value = optionId
       }
     }
 
     // Handle submitting the answer
     const submitAnswer = async () => {
       if (selectedOption.value !== null && currentQuestion.value) {
-        isSubmitting.value = true // Enable the loader
-
+        isSubmitting.value = true
         try {
-          // Submit the answer
           const response = await submitQuestionAnswer(
             currentQuestion.value.id,
             selectedOption.value,
           )
-
-          // Wait for 3 seconds before showing the result modal
           setTimeout(() => {
             showResultModal.value = true
-            isCorrect.value = response.correct // If correct is true, show correct answer, otherwise show incorrect
-            correctOptionId.value = response.correct_option_id // Store the correct option ID
-            isAnswered.value = true // Mark the question as answered, preventing further interactions
-
-            // Hide the loader after 3 seconds
+            isCorrect.value = response.correct
+            correctOptionId.value = response.correct_option_id
+            isAnswered.value = true
             isSubmitting.value = false
-          }, 3000) // Delay for 3 seconds
+          }, 3000)
         } catch (error) {
           console.error('Error submitting answer:', error)
-          isSubmitting.value = false // Hide the loader if there's an error
+          isSubmitting.value = false
         }
-      } else {
-        console.log('No option selected')
       }
     }
 
-    // Handle next question
     const nextQuestion = () => {
       quizStore.moveToNextQuestion()
-      selectedOption.value = null // Reset selected option
-      isAnswered.value = false // Allow answer selection again
-      showResultModal.value = false // Close the result modal
-      isSubmitting.value = false // Hide loader when moving to next question
+      selectedOption.value = null
+      isAnswered.value = false
+      showResultModal.value = false
+      isSubmitting.value = false
     }
 
     return {
       currentQuestion,
       selectedOption,
       selectAnswer,
-      submitAnswer, // Make sure to return submitAnswer so it can be used in the template
+      submitAnswer,
       showResultModal,
       isCorrect,
       isSubmitting,
       isAnswered,
-      nextQuestion, // Return nextQuestion to bind to the "Next Question" button
-      correctOptionId, // Return the correct option ID
+      nextQuestion,
+      showQuestion, // Return showQuestion to bind to template
+      correctOptionId,
+      subscribeToViewAll,
     }
   },
 })
@@ -358,6 +379,11 @@ button:focus {
   right: 20px;
   font-size: 30px;
   cursor: pointer;
+}
+
+.subscribe-button {
+  width: 100%;
+  background-color: black;
 }
 
 h3 {

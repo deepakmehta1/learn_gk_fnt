@@ -13,6 +13,7 @@ export const useQuizStore = defineStore('quiz', {
       currentQuestionIndex: ref(0),
       currentSubunitIndex: ref(0), // Track the current subunit index
       currentUnitIndex: ref(0), // Track the current unit index
+      showQuestion: ref(true), // Default is true, question is visible
     }
   },
   actions: {
@@ -66,6 +67,10 @@ export const useQuizStore = defineStore('quiz', {
         try {
           // Fetch the questions for the current subunit
           const questions = await getSubunitQuestions(currentSubunit.id)
+          if (questions.error_code === 101) {
+            this.sendSubscribeAction() // Call sendSubscribeAction if subscription is not found
+            return // Exit the function early to prevent further code execution
+          }
           this.setQuestions(questions)
 
           // Set the first question from the fetched questions
@@ -74,6 +79,10 @@ export const useQuizStore = defineStore('quiz', {
 
           // Ensure that the question is fetched by its ID to update the backend (like marking the question as attempted)
           const questionDetails = await getQuestionById(questions[0].id) // Get full question details from API
+          if (questionDetails.error_code === 101) {
+            this.sendSubscribeAction() // Call sendSubscribeAction if subscription is not found
+            return // Exit the function early to prevent further code execution
+          }
           this.setCurrentQuestion(questionDetails) // Set the full question details in the store
         } catch (error) {
           console.error('Error fetching subunit questions:', error)
@@ -81,7 +90,12 @@ export const useQuizStore = defineStore('quiz', {
       }
     },
 
-    // Move to the next question (handle moving to next subunit/unit if needed)
+    // Send identifier to indicate the user needs to subscribe to view all questions
+    sendSubscribeAction() {
+      this.showQuestion = false // Hide the question and show the subscribe button
+      console.log('You need to subscribe to view all the questions for this subunit.')
+    },
+
     async moveToNextQuestion() {
       const currentUnit = this.getSortedUnits()[this.currentUnitIndex]
       const currentSubunit = this.getSortedSubunits(currentUnit)[this.currentSubunitIndex]
@@ -96,10 +110,20 @@ export const useQuizStore = defineStore('quiz', {
         // Move to the next subunit if the current subunit is completed
         const nextSubunitIndex = this.currentSubunitIndex + 1
         if (nextSubunitIndex < currentUnit?.subunits.length) {
-          this.setCurrentSubunitIndex(nextSubunitIndex)
-          this.setCurrentQuestionIndex(0) // Reset to first question in the next subunit
-          // Fetch questions for the next subunit
-          await this.fetchQuestionsForCurrentSubunit() // Ensure questions are fetched first
+          const nextSubunit = currentUnit?.subunits[nextSubunitIndex]
+
+          // Check if next subunit is preview false
+          if (nextSubunit && !nextSubunit.is_preview) {
+            // Send identifier to indicate a "subscribe" action
+            this.setCurrentSubunitIndex(nextSubunitIndex)
+            this.setCurrentQuestionIndex(0) // Reset to first question in the next subunit
+            this.sendSubscribeAction() // Send an identifier to the front end
+          } else {
+            this.setCurrentSubunitIndex(nextSubunitIndex)
+            this.setCurrentQuestionIndex(0) // Reset to first question in the next subunit
+            // Fetch questions for the next subunit
+            await this.fetchQuestionsForCurrentSubunit() // Ensure questions are fetched first
+          }
         } else {
           // Move to the next unit if the current unit is completed
           const nextUnitIndex = this.currentUnitIndex + 1
@@ -136,6 +160,7 @@ export const useQuizStore = defineStore('quiz', {
           'currentQuestionIndex',
           'currentSubunitIndex',
           'currentUnitIndex',
+          'showQuestion',
         ], // Persist these parts of the state
       },
     ],

@@ -4,6 +4,7 @@ export interface Subunit {
   title_en: string
   title_hi: string
   question_count: number
+  is_preview: boolean
 }
 
 // Define the type for Unit

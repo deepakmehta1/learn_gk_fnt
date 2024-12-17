@@ -88,7 +88,7 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
+  setup() {
     const {
       currentQuestion,
       selectedOption,
@@ -102,7 +102,7 @@ export default defineComponent({
       nextQuestion,
       showQuestion,
       subscribeToViewAll,
-    } = useQuestion(props.language)
+    } = useQuestion()
 
     return {
       currentQuestion,

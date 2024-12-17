@@ -1,13 +1,14 @@
 <template>
   <div class="question-container">
+    <!-- Show subscribe button if showQuestion is false -->
     <div v-if="!showQuestion">
-      <!-- Show subscribe button if showQuestion is false -->
       <button class="subscribe-button" @click="subscribeToViewAll">
         Subscribe to view all questions 🚀
       </button>
     </div>
+
+    <!-- Show question if showQuestion is true -->
     <div v-else>
-      <!-- Show question if showQuestion is true -->
       <h2>Question {{ currentQuestion?.id }}: {{ currentQuestion?.[`text_${language}`] }}</h2>
 
       <!-- Options list -->
@@ -29,7 +30,7 @@
         </ol>
       </ol>
 
-      <!-- Submit button -->
+      <!-- Submit Answer Button -->
       <div class="d-flex justify-content-center">
         <button
           class="btn btn-primary mt-3 submit-button"
@@ -76,10 +77,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, onMounted, ref } from 'vue'
-import { useQuizStore } from '@/stores/quizStore' // Access quiz store
-import { getSubunitQuestions, getQuestionById, submitQuestionAnswer, getUserProgress } from '@/api' // Import API methods
-import type { Question } from '@/types/quizTypes' // Import the Question type
+import { defineComponent } from 'vue'
+import { useQuestion } from '@/composables/useQuestion'
 
 export default defineComponent({
   name: 'Question',
@@ -89,128 +88,34 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
-    const quizStore = useQuizStore() // Access quiz store
-    const selectedOption = ref<number | null>(null) // Track selected option
-    const correctOptionId = ref<number | null>(null) // Track the correct option id
-    const showResultModal = ref(false) // Control visibility of result modal
-    const isCorrect = ref(false) // Track if the answer is correct
-    const isSubmitting = ref(false) // Track if the submit button is clicked
-    const isAnswered = ref(false) // Track if the answer is submitted
-
-    // Computed to get the current question from the store
-    const currentQuestion = computed<Question | null>(() => quizStore.currentQuestion)
-    const showQuestion = computed(() => quizStore.showQuestion) // Access showQuestion from the store
-
-    // Fetch user progress on reload
-    onMounted(async () => {
-      if (quizStore.currentBook) {
-        try {
-          const progressResponse = await getUserProgress(quizStore.currentBook.id)
-
-          // Get the last answered question from the API response
-          const lastQuestion = progressResponse.recent_question_details[0]
-          const currentUnit = quizStore.currentBook?.units.find(
-            (unit) => unit.id === lastQuestion.unit_id,
-          )
-          const currentSubunit = currentUnit?.subunits.find(
-            (subunit) => subunit.id === lastQuestion.sub_unit_id,
-          )
-
-          if (currentSubunit) {
-            const questions = await getSubunitQuestions(currentSubunit.id)
-            console.log('questions ', questions)
-            // Check for error_code 101 in the questions response and return early if present
-            if (questions.error_code === 101) {
-              quizStore.sendSubscribeAction() // Call sendSubscribeAction if subscription is not found
-              return // Exit the function early to prevent further code execution
-            } else {
-              quizStore.setQuestions(questions)
-              const lastAnsweredQuestionIndex = questions.findIndex(
-                (question: Question) => question.id === lastQuestion.question_id,
-              )
-
-              const questionDetails = await getQuestionById(lastQuestion.question_id)
-
-              // Check for error_code 101 in the question details and return early if present
-              if (questionDetails.error_code === 101) {
-                quizStore.sendSubscribeAction() // Call sendSubscribeAction if subscription is not found
-                return // Exit the function early to prevent further code execution
-              } else {
-                quizStore.setCurrentQuestion(questionDetails) // Set question details
-                quizStore.setCurrentQuestionIndex(lastAnsweredQuestionIndex) // Update the question index
-
-                // Set the current unit and subunit indexes
-                const unitIndex = quizStore.currentBook?.units.indexOf(currentUnit)
-                const subunitIndex = currentUnit?.subunits.indexOf(currentSubunit)
-                if (unitIndex !== undefined && subunitIndex !== undefined) {
-                  quizStore.setCurrentUnitIndex(unitIndex)
-                  quizStore.setCurrentSubunitIndex(subunitIndex)
-                }
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching user progress:', error)
-        }
-      }
-    })
-
-    const subscribeToViewAll = () => {
-      console.log('Subscription initiated...')
-      // Handle subscription action here
-    }
-
-    // Handle selecting an answer
-    const selectAnswer = (optionId: number) => {
-      if (!isAnswered.value) {
-        selectedOption.value = optionId
-      }
-    }
-
-    // Handle submitting the answer
-    const submitAnswer = async () => {
-      if (selectedOption.value !== null && currentQuestion.value) {
-        isSubmitting.value = true
-        try {
-          const response = await submitQuestionAnswer(
-            currentQuestion.value.id,
-            selectedOption.value,
-          )
-          setTimeout(() => {
-            showResultModal.value = true
-            isCorrect.value = response.correct
-            correctOptionId.value = response.correct_option_id
-            isAnswered.value = true
-            isSubmitting.value = false
-          }, 3000)
-        } catch (error) {
-          console.error('Error submitting answer:', error)
-          isSubmitting.value = false
-        }
-      }
-    }
-
-    const nextQuestion = () => {
-      quizStore.moveToNextQuestion()
-      selectedOption.value = null
-      isAnswered.value = false
-      showResultModal.value = false
-      isSubmitting.value = false
-    }
-
-    return {
+  setup() {
+    const {
       currentQuestion,
       selectedOption,
-      selectAnswer,
-      submitAnswer,
+      correctOptionId,
       showResultModal,
       isCorrect,
       isSubmitting,
       isAnswered,
+      selectAnswer,
+      submitAnswer,
       nextQuestion,
-      showQuestion, // Return showQuestion to bind to template
+      showQuestion,
+      subscribeToViewAll,
+    } = useQuestion()
+
+    return {
+      currentQuestion,
+      selectedOption,
       correctOptionId,
+      showResultModal,
+      isCorrect,
+      isSubmitting,
+      isAnswered,
+      selectAnswer,
+      submitAnswer,
+      nextQuestion,
+      showQuestion,
       subscribeToViewAll,
     }
   },

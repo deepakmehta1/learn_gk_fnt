@@ -68,9 +68,10 @@ export const useQuizStore = defineStore('quiz', {
           // Fetch the questions for the current subunit
           const questions = await getSubunitQuestions(currentSubunit.id)
           if (questions.error_code === 101) {
-            this.sendSubscribeAction() // Call sendSubscribeAction if subscription is not found
+            this.sendSubscribeAction(false) // Call sendSubscribeAction if subscription is not found
             return // Exit the function early to prevent further code execution
           }
+          this.sendSubscribeAction(true)
           this.setQuestions(questions)
 
           // Set the first question from the fetched questions
@@ -80,9 +81,10 @@ export const useQuizStore = defineStore('quiz', {
           // Ensure that the question is fetched by its ID to update the backend (like marking the question as attempted)
           const questionDetails = await getQuestionById(questions[0].id) // Get full question details from API
           if (questionDetails.error_code === 101) {
-            this.sendSubscribeAction() // Call sendSubscribeAction if subscription is not found
+            this.sendSubscribeAction(false) // Call sendSubscribeAction if subscription is not found
             return // Exit the function early to prevent further code execution
           }
+          this.sendSubscribeAction(true)
           this.setCurrentQuestion(questionDetails) // Set the full question details in the store
         } catch (error) {
           console.error('Error fetching subunit questions:', error)
@@ -91,8 +93,8 @@ export const useQuizStore = defineStore('quiz', {
     },
 
     // Send identifier to indicate the user needs to subscribe to view all questions
-    sendSubscribeAction() {
-      this.showQuestion = false // Hide the question and show the subscribe button
+    sendSubscribeAction(show_question: boolean) {
+      this.showQuestion = show_question // Hide the question and show the subscribe button
       console.log('You need to subscribe to view all the questions for this subunit.')
     },
 
@@ -117,7 +119,7 @@ export const useQuizStore = defineStore('quiz', {
             // Send identifier to indicate a "subscribe" action
             this.setCurrentSubunitIndex(nextSubunitIndex)
             this.setCurrentQuestionIndex(0) // Reset to first question in the next subunit
-            this.sendSubscribeAction() // Send an identifier to the front end
+            this.sendSubscribeAction(false) // Send an identifier to the front end
           } else {
             this.setCurrentSubunitIndex(nextSubunitIndex)
             this.setCurrentQuestionIndex(0) // Reset to first question in the next subunit

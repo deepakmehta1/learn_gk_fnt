@@ -1,6 +1,5 @@
 <template>
   <div class="card shadow-sm position-relative">
-    <!-- "Start Practicing" button at the top right with glowing effect -->
     <button
       class="btn btn-success position-absolute top-0 end-0 m-1 start-practicing-btn"
       style="width: 30%"
@@ -9,111 +8,66 @@
       <i class="fas fa-play-circle"></i> Start Practicing
     </button>
 
-    <!-- Loader Component - This will be shown when the user clicks "Start Practicing" -->
     <Loader v-if="isLoading" :subunitTitles="subunitTitles" />
 
     <div class="card-body">
-      <!-- Display title based on current language (en/hi) -->
       <h5 class="card-title">{{ book[`title_${languageStore.language}` as keyof typeof book] }}</h5>
-
-      <!-- Display subtitle in the selected language -->
       <h6 class="card-subtitle mb-2 text-muted">
         {{ book[`title_${languageStore.language}` as keyof typeof book] }}
       </h6>
 
-      <!-- Button to toggle the visibility of topics -->
       <button class="btn btn-primary mt-3" @click="toggleUnitsVisibility">
         {{ isExpanded ? 'Collapse Topics' : 'Expand Topics' }}
       </button>
 
-      <!-- Conditionally render UnitsList if units data exists and topics are expanded -->
       <UnitsList v-if="isExpanded && units.length" :units="units" />
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue'
-import type { PropType } from 'vue' // Correct import for PropType
-import { useLanguageStore } from '@/stores/languageStore' // Access language store
-import { getBookDetails } from '@/api' // Fetch book details
-import UnitsList from './UnitsList.vue' // UnitsList component
-import type { Unit, Book } from '@/types/unitTypes' // Import Unit and Book types
-import { useQuizStore } from '@/stores/quizStore' // Import the quiz store
-import { useRouter } from 'vue-router' // To navigate to a new route
-import Loader from '@/components/Loader.vue' // Import the Loader component
+import { defineComponent } from 'vue'
+import { useBookCard } from '@/composables/useBookCard'
+import type { Book } from '@/types/unitTypes'
+import UnitsList from './UnitsList.vue'
+import Loader from '@/components/Loader.vue'
+import { useLanguageStore } from '@/stores/languageStore' // Import languageStore
 
 export default defineComponent({
   name: 'BookCard',
   props: {
     book: {
-      type: Object as PropType<Book>, // Updated prop type to use the full Book type
+      type: Object as PropType<Book>,
       required: true,
     },
   },
   components: {
-    UnitsList, // Register UnitsList component
-    Loader, // Register the Loader component
+    UnitsList,
+    Loader,
   },
   setup(props) {
-    const languageStore = useLanguageStore() // Access language store
-    const units = ref<Unit[]>([]) // Units data
-    const isExpanded = ref(false) // Track the visibility of units
-    const quizStore = useQuizStore() // Access quiz store
-    const router = useRouter() // To navigate to new route
-    const isLoading = ref(false) // Track loader visibility
-
-    // Reactive computed property for current language
-    const currentLanguage = computed(() => languageStore.language)
-
-    // Fetch book details when expanding the topics
-    const toggleUnitsVisibility = async () => {
-      if (!isExpanded.value) {
-        // Fetch book details when expanding
-        try {
-          const bookDetails = await getBookDetails(props.book.id)
-          units.value = bookDetails.units // Set units data
-        } catch (error) {
-          console.error('Error fetching book details:', error)
-        }
-      }
-      isExpanded.value = !isExpanded.value // Toggle the expanded state
-    }
-
-    // Start practicing: save book in store and navigate to quiz playground
-    const startPracticing = () => {
-      isLoading.value = true // Show loader
-      // Save current book in the store using the store instance
-      quizStore.setCurrentBook(props.book)
-      setTimeout(() => {
-        // After 3 seconds, navigate to quiz playground
-        router.push('/quiz-playground')
-      }, 5000) // 5 seconds
-    }
-
-    // Get the titles of all subunits
-    const subunitTitles = computed(() => {
-      const subunitTitlesArray: string[] = []
-      if (quizStore.currentBook) {
-        quizStore.currentBook.units.forEach((unit) => {
-          unit.subunits.forEach((subunit) => {
-            subunitTitlesArray.push(subunit[`title_${languageStore.language}`])
-          })
-        })
-      }
-      return subunitTitlesArray
-    })
+    const languageStore = useLanguageStore() // Access language store properly here
+    const {
+      units,
+      isExpanded,
+      isLoading,
+      showQuestion,
+      startPracticing,
+      toggleUnitsVisibility,
+      subunitTitles,
+      subscribeToViewAll,
+    } = useBookCard(props.book)
 
     return {
       units,
-      toggleUnitsVisibility,
       isExpanded,
-      languageStore,
-      currentLanguage,
-      book_obj: props.book,
-      startPracticing, // Expose the startPracticing method
-      isLoading, // Expose the loading state
+      isLoading,
+      showQuestion,
+      startPracticing,
+      toggleUnitsVisibility,
       subunitTitles,
+      subscribeToViewAll,
+      languageStore, // Make sure to return languageStore to be used in the template
     }
   },
 })

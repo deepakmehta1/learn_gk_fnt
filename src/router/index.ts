@@ -3,6 +3,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue' // Import HomeView
 import QuizPlaygroundView from '@/views/QuizPlaygroundView.vue' // If you have the quiz page
+import SubscriptionView from '@/views/SubscriptionView.vue' // Import SubscriptionView
 
 const routes = [
   {
@@ -14,6 +15,11 @@ const routes = [
     path: '/quiz-playground',
     name: 'quiz-playground',
     component: QuizPlaygroundView,
+  },
+  {
+    path: '/subscription',
+    name: 'subscription',
+    component: SubscriptionView, // Add SubscriptionView route
   },
 ]
 

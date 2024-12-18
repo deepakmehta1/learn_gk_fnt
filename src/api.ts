@@ -120,7 +120,7 @@ export const createSubscription = async (subscriptionType: string, bookId: numbe
         },
       },
     )
-    return response.data
+    return response
   } catch (error) {
     console.error('Error creating subscription:', error)
     throw error

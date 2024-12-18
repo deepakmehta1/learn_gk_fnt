@@ -30,6 +30,22 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal for subscription result -->
+    <div v-if="showModal" class="modal">
+      <div class="modal-content" :class="{ 'success-modal': isSuccess, 'error-modal': !isSuccess }">
+        <span class="close-btn" @click="showModal = false">&times;</span>
+        <div v-if="isSuccess">
+          <h3>Subscription Successful!</h3>
+          <p>Your subscription has been applied successfully.</p>
+        </div>
+        <div v-else>
+          <h3>Subscription Failed</h3>
+          <p>{{ errorMessage }}</p>
+        </div>
+        <button class="btn btn-primary" @click="goToHome">Go to Home</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -39,6 +55,7 @@ import { getSubscriptions, getBooks, createSubscription } from '@/api'
 import type { Subscription } from '@/types/subscriptionTypes'
 import type { Book } from '@/types/unitTypes'
 import { useLanguageStore } from '@/stores/languageStore' // For language management
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
   name: 'SubscriptionView',
@@ -47,6 +64,10 @@ export default defineComponent({
     const books = ref<Book[]>([]) // Holds book data for dropdown
     const selectedBook = ref<number | null>(null) // Holds the selected book
     const languageStore = useLanguageStore() // Access language store
+    const router = useRouter() // For navigation
+    const showModal = ref(false) // Controls modal visibility
+    const isSuccess = ref(true) // Determines success or failure of the subscription
+    const errorMessage = ref('') // Stores the error message if subscription fails
 
     // Fetch subscriptions and books on component mount
     onMounted(async () => {
@@ -77,13 +98,28 @@ export default defineComponent({
 
       try {
         const bookId = subscriptionCode === 'base_subscription' ? selectedBook.value : null
-        await createSubscription(subscriptionCode, bookId)
-        console.log(`Subscribed to ${subscriptionCode} with book ID: ${bookId}`)
-        // Optionally, handle UI feedback, navigate to the success page, etc.
+        const response = await createSubscription(subscriptionCode, bookId)
+
+        if (response && response.status === 200) {
+          isSuccess.value = true
+        } else {
+          isSuccess.value = false
+          errorMessage.value =
+            response?.detail || 'An error occurred while processing your subscription.'
+        }
+
+        showModal.value = true // Show modal after response
       } catch (error) {
-        console.error('Error subscribing:', error)
-        // Handle error (show error message, etc.)
+        isSuccess.value = false
+        errorMessage.value =
+          error?.response?.data?.detail || 'An error occurred while processing your subscription.'
+        showModal.value = true // Show modal after error
       }
+    }
+
+    // Navigate to the home route
+    const goToHome = () => {
+      router.push('/')
     }
 
     return {
@@ -92,6 +128,10 @@ export default defineComponent({
       selectedBook,
       subscribe,
       languageStore,
+      showModal,
+      isSuccess,
+      errorMessage,
+      goToHome,
     }
   },
 })
@@ -143,5 +183,48 @@ export default defineComponent({
 select {
   margin-top: 10px;
   background-color: antiquewhite;
+}
+
+/* Modal Styling */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  width: 400px;
+  text-align: center;
+}
+
+/* Success Modal */
+.success-modal {
+  color: green;
+}
+
+.error-modal {
+  color: red;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+button {
+  margin-top: 20px;
 }
 </style>

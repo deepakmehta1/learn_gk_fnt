@@ -90,3 +90,17 @@ export const getUserProgress = async (bookId: number) => {
     throw error
   }
 }
+
+export const getSubscriptions = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}/subscription/all`, {
+      headers: {
+        Authorization: `Bearer ${BEARER_TOKEN}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.error('Error fetching subscriptions:', error)
+    throw error
+  }
+}

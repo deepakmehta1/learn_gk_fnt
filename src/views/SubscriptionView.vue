@@ -13,6 +13,17 @@
           <h5 class="card-title">{{ subscription.name }}</h5>
           <p class="card-text">{{ subscription.description }}</p>
           <p class="card-text"><strong>Cost: </strong>₹{{ subscription.cost }}</p>
+
+          <!-- Dropdown for base subscription -->
+          <div v-if="subscription.code === 'base_subscription'">
+            <label for="bookSelect">Select a Book:</label>
+            <select id="bookSelect" v-model="selectedBook" class="form-control">
+              <option v-for="book in books" :key="book.id" :value="book.id">
+                {{ book[`title_${languageStore.language}`] }}
+              </option>
+            </select>
+          </div>
+
           <button class="btn btn-primary" @click="subscribe(subscription.code)">
             Subscribe Now
           </button>
@@ -24,33 +35,55 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue'
-import { getSubscriptions } from '@/api'
+import { getSubscriptions, getBooks } from '@/api'
 import type { Subscription } from '@/types/subscriptionTypes'
+import type { Book } from '@/types/unitTypes'
+import { useLanguageStore } from '@/stores/languageStore' // For language management
 
 export default defineComponent({
   name: 'SubscriptionView',
   setup() {
     const subscriptions = ref<Subscription[]>([]) // Holds subscription data
+    const books = ref<Book[]>([]) // Holds book data for dropdown
+    const selectedBook = ref<number | null>(null) // Holds the selected book
+    const languageStore = useLanguageStore() // Access language store
 
-    // Fetch subscriptions on component mount
+    // Fetch subscriptions and books on component mount
     onMounted(async () => {
       try {
+        // Fetch subscription data
         const response = await getSubscriptions()
         subscriptions.value = response
+
+        // Fetch books data for the dropdown
+        const booksResponse = await getBooks()
+        books.value = booksResponse
+
+        // Set default book for base subscription dropdown (first book)
+        if (books.value.length > 0) {
+          selectedBook.value = books.value[0].id
+        }
       } catch (error) {
-        console.error('Error fetching subscriptions:', error)
+        console.error('Error fetching data:', error)
       }
     })
 
     // Handle subscription button click
     const subscribe = (subscriptionCode: string) => {
-      console.log(`Subscribed to ${subscriptionCode}`)
+      if (subscriptionCode === 'base_subscription' && selectedBook.value === null) {
+        console.error('Please select a book for Base Subscription')
+        return
+      }
+      console.log(`Subscribed to ${subscriptionCode} with book ID: ${selectedBook.value}`)
       // Handle the actual subscription process here (e.g., navigate to a subscription page or update the store)
     }
 
     return {
       subscriptions,
+      books,
+      selectedBook,
       subscribe,
+      languageStore,
     }
   },
 })
@@ -97,5 +130,10 @@ export default defineComponent({
   background-color: #92a04c;
   color: white;
   width: 100%;
+}
+
+select {
+  margin-top: 10px;
+  background-color: antiquewhite;
 }
 </style>

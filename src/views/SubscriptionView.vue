@@ -4,6 +4,11 @@
     <div class="card-group">
       <!-- Render subscription cards dynamically -->
       <div v-for="subscription in subscriptions" :key="subscription.id" class="card">
+        <img
+          :src="subscription.code === 'full_subscription' ? '/multi-books.png' : '/book.png'"
+          class="card-img-top"
+          alt="Subscription Image"
+        />
         <div class="card-body">
           <h5 class="card-title">{{ subscription.name }}</h5>
           <p class="card-text">{{ subscription.description }}</p>
@@ -53,9 +58,9 @@ export default defineComponent({
 
 <style scoped>
 .subscription-container {
-  margin-top: 20px;
-  width: 60%;
-  margin-left: 20%;
+  margin-top: 5%;
+  width: 70%;
+  margin-left: 15%;
 }
 
 .card-group {
@@ -70,7 +75,9 @@ export default defineComponent({
 }
 
 .card-img-top {
-  height: 200px;
+  height: 100px;
+  width: 20%;
+  margin-left: 40%;
   object-fit: cover;
 }
 
@@ -87,7 +94,7 @@ export default defineComponent({
 }
 
 .btn {
-  background-color: #28a745;
+  background-color: #92a04c;
   color: white;
   width: 100%;
 }

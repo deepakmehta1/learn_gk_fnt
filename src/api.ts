@@ -104,3 +104,25 @@ export const getSubscriptions = async () => {
     throw error
   }
 }
+
+// Method to create a subscription
+export const createSubscription = async (subscriptionType: string, bookId: number | null) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/subscription/create`,
+      {
+        subscription_type: subscriptionType,
+        book_id: bookId, // If it's full_subscription, book_id will be null
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${BEARER_TOKEN}`,
+        },
+      },
+    )
+    return response.data
+  } catch (error) {
+    console.error('Error creating subscription:', error)
+    throw error
+  }
+}

@@ -12,7 +12,7 @@
         <div class="card-body">
           <h5 class="card-title">{{ subscription.name }}</h5>
           <p class="card-text">{{ subscription.description }}</p>
-          <p class="card-text"><strong>Cost: </strong>₹{{ subscription.cost }}</p>
+          <p class="card-text"><strong>Cost: </strong>₹{{ subscription.cost }} for a month</p>
 
           <!-- Dropdown for base subscription -->
           <div v-if="subscription.code === 'base_subscription'">
@@ -35,7 +35,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue'
-import { getSubscriptions, getBooks } from '@/api'
+import { getSubscriptions, getBooks, createSubscription } from '@/api'
 import type { Subscription } from '@/types/subscriptionTypes'
 import type { Book } from '@/types/unitTypes'
 import { useLanguageStore } from '@/stores/languageStore' // For language management
@@ -69,13 +69,21 @@ export default defineComponent({
     })
 
     // Handle subscription button click
-    const subscribe = (subscriptionCode: string) => {
+    const subscribe = async (subscriptionCode: string) => {
       if (subscriptionCode === 'base_subscription' && selectedBook.value === null) {
         console.error('Please select a book for Base Subscription')
         return
       }
-      console.log(`Subscribed to ${subscriptionCode} with book ID: ${selectedBook.value}`)
-      // Handle the actual subscription process here (e.g., navigate to a subscription page or update the store)
+
+      try {
+        const bookId = subscriptionCode === 'base_subscription' ? selectedBook.value : null
+        await createSubscription(subscriptionCode, bookId)
+        console.log(`Subscribed to ${subscriptionCode} with book ID: ${bookId}`)
+        // Optionally, handle UI feedback, navigate to the success page, etc.
+      } catch (error) {
+        console.error('Error subscribing:', error)
+        // Handle error (show error message, etc.)
+      }
     }
 
     return {

@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useQuizStore } from '@/stores/quizStore'
-import { getSubunitQuestions, getQuestionById, getUserProgress } from '@/api'
+import { getSubunitQuestions, getQuestionById, getUserProgress, submitQuestionAnswer } from '@/api'
 import type { Question } from '@/types/quizTypes'
 
 export function useQuestion() {
@@ -23,10 +23,10 @@ export function useQuestion() {
         const progressResponse = await getUserProgress(quizStore.currentBook.id)
 
         if (progressResponse.error_code === 101) {
-          quizStore.sendSubscribeAction() // Subscription required
+          quizStore.handleSubscription(false) // Subscription required
           return
         }
-        quizStore.sendSubscribeAction(true)
+        quizStore.handleSubscription(true)
         const lastQuestion = progressResponse.recent_question_details[0]
         const currentUnit = quizStore.currentBook?.units.find(
           (unit) => unit.id === lastQuestion.unit_id,
@@ -39,10 +39,10 @@ export function useQuestion() {
           const questions = await getSubunitQuestions(currentSubunit.id)
 
           if (questions.error_code === 101) {
-            quizStore.sendSubscribeAction()
+            quizStore.handleSubscription(false)
             return
           }
-          quizStore.sendSubscribeAction(true)
+          quizStore.handleSubscription(true)
           quizStore.setQuestions(questions)
           const lastAnsweredQuestionIndex = questions.findIndex(
             (question: Question) => question.id === lastQuestion.question_id,

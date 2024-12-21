@@ -6,16 +6,21 @@
 
       <!-- Iterate over units and subunits -->
       <li
-        v-for="unit in quizStore.currentBook?.units"
+        v-for="(unit, unitIndex) in quizStore.currentBook?.units"
         :key="unit.id"
         class="list-group-item bg-dark text-white"
       >
-        <div class="d-flex justify-content-start">
+        <div class="d-flex justify-content-start" @click="toggleUnitExpansion(unitIndex)">
           <span class="fa fa-book mr-3"></span>
           <span>{{ unit[`title_${languageStore.language}`] }}</span>
+
+          <!-- Add an indicator for expansion/collapse -->
+          <span class="expand-collapse-indicator">
+            {{ isUnitExpanded(unitIndex) ? '-' : '+' }}
+          </span>
         </div>
 
-        <ul class="list-group">
+        <ul class="list-group" v-if="isUnitExpanded(unitIndex)">
           <li
             v-for="subunit in unit.subunits"
             :key="subunit.id"
@@ -51,6 +56,7 @@ export default defineComponent({
     const quizStore = useQuizStore() // Access quiz store
     const languageStore = useLanguageStore() // Access language store
     const currentSubunitId = ref<number | null>(null)
+    const currentExpandedUnit = ref<number | null>(null) // Track the currently expanded unit
 
     // Fetch the user's progress on component mount
     onMounted(async () => {
@@ -59,6 +65,9 @@ export default defineComponent({
           const progress: UserProgress = await getUserProgress(quizStore.currentBook.id) // Use the typed response
           const recentQuestion = progress.recent_question_details[0]
           currentSubunitId.value = recentQuestion.sub_unit_id
+
+          // Set the current expanded unit based on the current unit
+          currentExpandedUnit.value = quizStore.currentUnitIndex // Expand the current unit by default
         } catch (error) {
           console.error('Error fetching user progress:', error)
         }
@@ -76,11 +85,23 @@ export default defineComponent({
       return subunit.id === currentSubunit.value?.id
     }
 
+    // Function to check if a unit is expanded
+    const isUnitExpanded = (unitIndex: number) => {
+      return currentExpandedUnit.value === unitIndex
+    }
+
+    // Toggle the expanded state of the unit
+    const toggleUnitExpansion = (unitIndex: number) => {
+      currentExpandedUnit.value = currentExpandedUnit.value === unitIndex ? null : unitIndex
+    }
+
     return {
       quizStore,
       languageStore,
       currentSubunit,
       isCurrentSubunit,
+      isUnitExpanded,
+      toggleUnitExpansion,
     }
   },
 })
@@ -141,5 +162,12 @@ export default defineComponent({
 
 .blurry {
   filter: blur(5px);
+}
+
+.expand-collapse-indicator {
+  margin-left: auto;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #fff;
 }
 </style>

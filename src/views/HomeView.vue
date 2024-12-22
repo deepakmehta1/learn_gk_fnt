@@ -1,13 +1,22 @@
 <template>
   <div class="home">
     <!-- Language Toggle Button at the top right -->
-    <div class="language-toggle">
-      <button @click="toggleLanguage">
-        Switch to {{ currentLanguage === 'en' ? 'Hindi' : 'English' }}
-      </button>
+    <div class="row">
+      <div class="col-12 text-end language-toggle">
+        <button @click="toggleLanguage">
+          Switch to {{ currentLanguage === 'en' ? 'Hindi' : 'English' }}
+        </button>
+      </div>
     </div>
 
-    <h1 class="text-center my-4">Books</h1>
+    <!-- Books Title -->
+    <div class="row">
+      <div class="col-12">
+        <h1 class="text-center my-4">Available Books</h1>
+      </div>
+    </div>
+
+    <!-- Book List Component -->
     <BookList />
   </div>
 </template>
@@ -48,7 +57,6 @@ export default defineComponent({
 
 /* Language toggle button style */
 .language-toggle {
-  position: absolute;
   top: 20px;
   right: 20px;
   background-color: #fff;
@@ -59,5 +67,11 @@ export default defineComponent({
 
 .language-toggle button {
   font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .text-end {
+    margin-bottom: 20px; /* Add space between the button and title on mobile */
+  }
 }
 </style>

@@ -20,7 +20,11 @@ export const getBooks = async () => {
 
 export const getBookDetails = async (bookId: number) => {
   try {
-    const response = await axios.get(`${BASE_URL}/books/book/${bookId}`)
+    const response = await axios.get(`${BASE_URL}/books/book/${bookId}`, {
+      headers: {
+        Authorization: `Bearer ${BEARER_TOKEN}`,
+      },
+    })
     return response.data
   } catch (error) {
     console.error('Error fetching book details:', error)

@@ -19,14 +19,14 @@
       }"
       class="d-md-block"
     >
-      <!-- Close Button on Mobile -->
+      <!-- Close Button on Mobile at top right corner -->
       <button
         v-if="isSidebarVisible && isMobile"
         class="btn btn-dark sidebar-close-btn"
         @click="toggleSidebar"
         aria-label="Collapse Sidebar"
       >
-        <span class="fa fa-arrow-left"></span>
+        <span class="fa fa-times"></span>
       </button>
 
       <!-- Sidebar Content -->
@@ -152,12 +152,13 @@ export default defineComponent({
   min-height: 100vh;
   background-color: #333;
   padding: 0;
-  transition: transform 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out; /* Added transition for smooth slide */
 }
 
 /* Sidebar is collapsed on mobile (d-none) and displayed on larger screens (d-md-block) */
 .sidebar-expanded {
   width: 300px;
+  transform: translateX(0); /* Slide-in effect */
 }
 
 .sidebar-separator-title {
@@ -221,22 +222,21 @@ export default defineComponent({
   z-index: 1000;
   background-color: #28a745;
   color: white;
-  font-size: 1.5rem;
+  font-size: 1rem;
   border: none;
   padding: 10px;
   border-radius: 50%;
   cursor: pointer;
 }
 
-/* Close Button for Sidebar on Mobile */
+/* Close Button for Sidebar on Mobile at top right corner */
 .sidebar-close-btn {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  right: 10px; /* Move the close button to the top right */
   z-index: 1001;
   background-color: #dc3545;
   color: white;
-  font-size: 1.5rem;
+  font-size: 1rem;
   border: none;
   padding: 10px;
   border-radius: 50%;
@@ -258,13 +258,7 @@ export default defineComponent({
     width: 300px;
     background-color: #333;
     height: 100vh;
-  }
-
-  .question-container {
-    margin-left: 0;
-    padding: 0;
-    width: 100%;
-    transition: margin-left 0.3s ease-in-out;
+    transform: translateX(0); /* Sidebar fully visible */
   }
 }
 </style>

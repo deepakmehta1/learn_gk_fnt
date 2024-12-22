@@ -6,7 +6,7 @@
     <!-- Main content area -->
     <div class="content-area">
       <!-- Title in the top center -->
-      <h2 class="text-center mt-4">
+      <h2 class="text-center mt-4 title-content">
         {{ languageStore.language === 'en' ? 'Practicing: ' : 'अभ्यास कर रहे हैं: ' }}
         {{ quizStore.currentBook?.[`title_${languageStore.language}`] }}
       </h2>
@@ -171,9 +171,20 @@ h2 {
   font-weight: bold;
 }
 
+.title-content {
+  margin-bottom: -40px;
+}
+
 @media (max-width: 768px) {
+  .title-content {
+    font-size: 20px;
+    font-weight: bold;
+    padding-top: 10%;
+    margin-bottom: -20px;
+  }
+
   .show-progress-button {
-    width: 100%;
+    width: 40%;
     margin: 0 auto;
   }
 }

@@ -171,6 +171,10 @@ h2 {
   font-weight: bold;
 }
 
+.title-content {
+  margin-bottom: -40px;
+}
+
 @media (max-width: 768px) {
   .title-content {
     font-size: 20px;

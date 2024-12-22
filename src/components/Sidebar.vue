@@ -1,44 +1,74 @@
 <template>
-  <div id="sidebar-container" class="sidebar-expanded d-none d-md-block">
-    <!-- Timeline -->
-    <ul class="list-group">
-      <li class="list-group-item sidebar-separator-title">Book Progress</li>
+  <div>
+    <!-- Sidebar Toggle Button for Mobile (Show when collapsed) -->
+    <button
+      v-if="isMobile && !isSidebarVisible"
+      class="btn btn-dark sidebar-toggle-btn"
+      @click="toggleSidebar"
+      aria-label="Expand Sidebar"
+    >
+      <span class="fa fa-arrow-right"></span>
+    </button>
 
-      <!-- Iterate over units and subunits -->
-      <li
-        v-for="(unit, unitIndex) in quizStore.currentBook?.units"
-        :key="unit.id"
-        class="list-group-item bg-dark text-white"
+    <!-- Sidebar (Hidden on Mobile) -->
+    <div
+      id="sidebar-container"
+      :class="{
+        'sidebar-expanded': isSidebarVisible,
+        'd-none': !isSidebarVisible && isMobile,
+      }"
+      class="d-md-block"
+    >
+      <!-- Close Button on Mobile -->
+      <button
+        v-if="isSidebarVisible && isMobile"
+        class="btn btn-dark sidebar-close-btn"
+        @click="toggleSidebar"
+        aria-label="Collapse Sidebar"
       >
-        <div class="d-flex justify-content-start" @click="toggleUnitExpansion(unitIndex)">
-          <span class="fa fa-book mr-3"></span>
-          <span>{{ unit[`title_${languageStore.language}`] }}</span>
+        <span class="fa fa-arrow-left"></span>
+      </button>
 
-          <!-- Add an indicator for expansion/collapse -->
-          <span class="expand-collapse-indicator">
-            {{ isUnitExpanded(unitIndex) ? '-' : '+' }}
-          </span>
-        </div>
+      <!-- Sidebar Content -->
+      <ul class="list-group">
+        <li class="list-group-item sidebar-separator-title">Book Progress</li>
 
-        <ul class="list-group" v-if="isUnitExpanded(unitIndex)">
-          <li
-            v-for="subunit in unit.subunits"
-            :key="subunit.id"
-            class="list-group-item"
-            :class="{
-              'bg-success': isCurrentSubunit(subunit),
-              'text-white': isCurrentSubunit(subunit),
-              'bg-secondary': !isCurrentSubunit(subunit),
-              blurry: !subunit.is_preview, // Add blurry class conditionally
-            }"
-          >
-            <div class="d-flex justify-content-between subunit-title">
-              <span>{{ subunit[`title_${languageStore.language}`] }}</span>
-            </div>
-          </li>
-        </ul>
-      </li>
-    </ul>
+        <!-- Iterate over units and subunits -->
+        <li
+          v-for="(unit, unitIndex) in quizStore.currentBook?.units"
+          :key="unit.id"
+          class="list-group-item bg-dark text-white"
+        >
+          <div class="d-flex justify-content-start" @click="toggleUnitExpansion(unitIndex)">
+            <span class="fa fa-book mr-3"></span>
+            <span>{{ unit[`title_${languageStore.language}`] }}</span>
+
+            <!-- Add an indicator for expansion/collapse -->
+            <span class="expand-collapse-indicator">
+              {{ isUnitExpanded(unitIndex) ? '-' : '+' }}
+            </span>
+          </div>
+
+          <ul class="list-group" v-if="isUnitExpanded(unitIndex)">
+            <li
+              v-for="subunit in unit.subunits"
+              :key="subunit.id"
+              class="list-group-item"
+              :class="{
+                'bg-success': isCurrentSubunit(subunit),
+                'text-white': isCurrentSubunit(subunit),
+                'bg-secondary': !isCurrentSubunit(subunit),
+                blurry: !subunit.is_preview, // Add blurry class conditionally
+              }"
+            >
+              <div class="d-flex justify-content-between subunit-title">
+                <span>{{ subunit[`title_${languageStore.language}`] }}</span>
+              </div>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -57,6 +87,8 @@ export default defineComponent({
     const languageStore = useLanguageStore() // Access language store
     const currentSubunitId = ref<number | null>(null)
     const currentExpandedUnit = ref<number | null>(null) // Track the currently expanded unit
+    const isSidebarVisible = ref(false) // Track whether the sidebar is visible on mobile
+    const isMobile = computed(() => window.innerWidth <= 768) // Detect if it's mobile screen
 
     // Fetch the user's progress on component mount
     onMounted(async () => {
@@ -95,6 +127,11 @@ export default defineComponent({
       currentExpandedUnit.value = currentExpandedUnit.value === unitIndex ? null : unitIndex
     }
 
+    // Toggle sidebar visibility on mobile
+    const toggleSidebar = () => {
+      isSidebarVisible.value = !isSidebarVisible.value
+    }
+
     return {
       quizStore,
       languageStore,
@@ -102,6 +139,9 @@ export default defineComponent({
       isCurrentSubunit,
       isUnitExpanded,
       toggleUnitExpansion,
+      toggleSidebar,
+      isSidebarVisible,
+      isMobile,
     }
   },
 })
@@ -112,6 +152,7 @@ export default defineComponent({
   min-height: 100vh;
   background-color: #333;
   padding: 0;
+  transition: transform 0.3s ease-in-out;
 }
 
 /* Sidebar is collapsed on mobile (d-none) and displayed on larger screens (d-md-block) */
@@ -172,10 +213,58 @@ export default defineComponent({
   color: #fff;
 }
 
+/* Sidebar toggle button for mobile */
+.sidebar-toggle-btn {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  background-color: #28a745;
+  color: white;
+  font-size: 1.5rem;
+  border: none;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Close Button for Sidebar on Mobile */
+.sidebar-close-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1001;
+  background-color: #dc3545;
+  color: white;
+  font-size: 1.5rem;
+  border: none;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
 /* Hide sidebar on mobile */
 @media (max-width: 768px) {
   #sidebar-container {
     display: none;
+  }
+
+  #sidebar-container.sidebar-expanded {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    width: 300px;
+    background-color: #333;
+    height: 100vh;
+  }
+
+  .question-container {
+    margin-left: 0;
+    padding: 0;
+    width: 100%;
+    transition: margin-left 0.3s ease-in-out;
   }
 }
 </style>

@@ -1,32 +1,37 @@
 <template>
   <div class="subscription-container">
     <h1 class="text-center mb-4">Choose Your Subscription</h1>
-    <div class="card-group">
+
+    <!-- Cards container with Bootstrap grid -->
+    <div class="card-deck row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-2">
       <!-- Render subscription cards dynamically -->
-      <div v-for="subscription in subscriptions" :key="subscription.id" class="card">
-        <img
-          :src="subscription.code === 'full_subscription' ? '/multi-books.png' : '/book.png'"
-          class="card-img-top"
-          alt="Subscription Image"
-        />
-        <div class="card-body">
-          <h5 class="card-title">{{ subscription.name }}</h5>
-          <p class="card-text">{{ subscription.description }}</p>
-          <p class="card-text"><strong>Cost: </strong>₹{{ subscription.cost }} for a month</p>
+      <div v-for="subscription in subscriptions" :key="subscription.id" class="col">
+        <div class="card h-100">
+          <img
+            :src="subscription.code === 'full_subscription' ? '/multi-books.png' : '/book.png'"
+            class="card-img-top"
+            alt="Subscription Image"
+          />
+          <div class="card-body">
+            <h5 class="card-title">{{ subscription.name }}</h5>
+            <p class="card-text">{{ subscription.description }}</p>
+            <p class="card-text"><strong>Cost: </strong>₹{{ subscription.cost }} for a month</p>
 
-          <!-- Dropdown for base subscription -->
-          <div v-if="subscription.code === 'base_subscription'">
-            <label for="bookSelect">Select a Book:</label>
-            <select id="bookSelect" v-model="selectedBook" class="form-control">
-              <option v-for="book in books" :key="book.id" :value="book.id">
-                {{ book[`title_${languageStore.language}`] }}
-              </option>
-            </select>
+            <!-- Dropdown for base subscription -->
+            <div v-if="subscription.code === 'base_subscription'">
+              <label for="bookSelect">Select a Book:</label>
+              <select id="bookSelect" v-model="selectedBook" class="form-select">
+                <option v-for="book in books" :key="book.id" :value="book.id">
+                  {{ book[`title_${languageStore.language}`] }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Subscribe button -->
+            <button class="btn btn-primary w-100" @click="subscribe(subscription.code)">
+              Subscribe Now
+            </button>
           </div>
-
-          <button class="btn btn-primary" @click="subscribe(subscription.code)">
-            Subscribe Now
-          </button>
         </div>
       </div>
     </div>
@@ -140,26 +145,24 @@ export default defineComponent({
 <style scoped>
 .subscription-container {
   margin-top: 5%;
-  width: 70%;
-  margin-left: 15%;
+  padding: 0 15px;
 }
 
-.card-group {
+.card-deck {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-around;
 }
 
 .card {
-  width: 45%;
-  margin: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .card-img-top {
-  height: 100px;
-  width: 20%;
-  margin-left: 40%;
+  height: 300px;
+  width: 300px;
   object-fit: cover;
+  margin-left: 20%;
 }
 
 .card-body {
@@ -167,7 +170,7 @@ export default defineComponent({
 }
 
 .card-title {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
 }
 
 .card-text {
@@ -226,5 +229,34 @@ select {
 
 button {
   margin-top: 20px;
+}
+
+/* Mobile Friendly Adjustments using Bootstrap classes */
+@media (max-width: 768px) {
+  .subscription-container {
+    padding: 0 10px;
+  }
+
+  /* Cards will be stacked one over the other on mobile */
+  .card-deck {
+    display: grid;
+    grid-template-columns: 1fr; /* 1 card per row on mobile */
+    gap: 15px; /* Adjusting gap between cards */
+  }
+
+  .card {
+    margin-bottom: 10px;
+  }
+
+  .card-img-top {
+    height: 100px;
+    width: 100px;
+    object-fit: cover;
+    margin-left: 35%;
+  }
+
+  .modal-content {
+    width: 80%; /* Modal width adjustment for smaller screens */
+  }
 }
 </style>

@@ -310,12 +310,27 @@ h3 {
 @media (max-width: 768px) {
   .question-container {
     width: 100%;
+    padding: 10px;
   }
 
   h2 {
     font-size: 16px;
     margin-bottom: 20px;
-    margin-top: 30px;
+    margin-left: 10px;
+  }
+
+  ol {
+    padding-left: 15px;
+    width: 96%;
+  }
+
+  .next-question-button {
+    width: 50%;
+    background-color: #215fa0;
+    margin-top: 10px;
+    color: white;
+    border-radius: 5px;
+    border: none;
   }
 
   .submit-button {

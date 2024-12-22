@@ -1,5 +1,5 @@
 <template>
-  <div id="sidebar-container" class="sidebar-expanded">
+  <div id="sidebar-container" class="sidebar-expanded d-none d-md-block">
     <!-- Timeline -->
     <ul class="list-group">
       <li class="list-group-item sidebar-separator-title">Book Progress</li>
@@ -114,6 +114,7 @@ export default defineComponent({
   padding: 0;
 }
 
+/* Sidebar is collapsed on mobile (d-none) and displayed on larger screens (d-md-block) */
 .sidebar-expanded {
   width: 300px;
 }
@@ -169,5 +170,12 @@ export default defineComponent({
   font-size: 1.2rem;
   cursor: pointer;
   color: #fff;
+}
+
+/* Hide sidebar on mobile */
+@media (max-width: 768px) {
+  #sidebar-container {
+    display: none;
+  }
 }
 </style>
